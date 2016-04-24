@@ -29,8 +29,6 @@ func TestClientHeader(t *testing.T) {
 		t.Error("got an error,", err.Error())
 	}
 
-	fmt.Println(act)
-
 	if !strings.Contains(act, "Authorization: Hawk") {
 		t.Error("actual not contains 'Authorization: Hawk'")
 	}
