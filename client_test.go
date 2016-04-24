@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
-	"fmt"
 )
 
 func TestClientHeader(t *testing.T) {
