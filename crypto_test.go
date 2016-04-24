@@ -27,7 +27,7 @@ func TestString(t *testing.T) {
 
 	act, err := m.String()
 	if err != nil {
-		t.Error("got an error", err)
+		t.Error("got an error", err.Error())
 	}
 
 	if act == "" {
