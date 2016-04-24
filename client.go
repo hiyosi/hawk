@@ -7,8 +7,8 @@ import (
 )
 
 type Client struct {
-	Credential Credential
-	Option     Option
+	Credential *Credential
+	Option     *Option
 }
 
 type Credential struct {

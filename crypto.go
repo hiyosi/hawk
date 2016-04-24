@@ -24,15 +24,15 @@ const (
 
 type Mac struct {
 	Type       AuthType
-	Credential Credential
+	Credential *Credential
 	Uri        string
 	Method     string
-	Option     Option
+	Option     *Option
 }
 
 type TsMac struct {
 	TimeStamp  int64
-	Credential Credential
+	Credential *Credential
 }
 
 func (m *Mac) String() (string, error) {
@@ -76,7 +76,7 @@ func (tm *TsMac) digest() []byte {
 	return mac.Sum(nil)
 }
 
-func normalized(authType AuthType, uri string, method string, option Option) (string, error) {
+func normalized(authType AuthType, uri string, method string, option *Option) (string, error) {
 	u, err := url.Parse(uri)
 	if err != nil {
 		return "", err
