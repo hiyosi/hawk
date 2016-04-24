@@ -5,9 +5,11 @@ import (
 
 	"strings"
 	"time"
+	"unicode/utf8"
+	"fmt"
 )
 
-func TestClient_Header(t *testing.T) {
+func TestClientHeader(t *testing.T) {
 	c := &Client{
 		Credential: &Credential{
 			ID: "test-id",
@@ -24,7 +26,7 @@ func TestClient_Header(t *testing.T) {
 	url := "https://example.com/test/hawk"
 	act, err := c.Header(url, "GET")
 	if err != nil {
-		t.Error("got an error,", err)
+		t.Error("got an error,", err.Error())
 	}
 
 	if !strings.Contains(act, "Authorization: Hawk") {
@@ -41,5 +43,19 @@ func TestClient_Header(t *testing.T) {
 	}
 	if !strings.Contains(act, "ext") {
 		t.Error("actual not contains 'ext' attribute")
+	}
+}
+
+func TestNonce(t *testing.T) {
+	byteSize := 10
+	act, err := Nonce(byteSize)
+	if err != nil {
+		t.Error("got an error," + err.Error())
+	}
+
+	fmt.Println(act)
+
+	if utf8.RuneCountInString(act) != byteSize * 2 {
+		t.Error("expected length=10, but actual length=", utf8.RuneCountInString(act))
 	}
 }
