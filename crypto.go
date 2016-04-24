@@ -47,7 +47,7 @@ func (m *Mac) digest() ([]byte, error) {
 	h := getHash(m.Credential.Alg)
 
 	mac := hmac.New(h, []byte(m.Credential.Key))
-	ns, err := m.nomarized()
+	ns, err := m.normalized()
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +56,8 @@ func (m *Mac) digest() ([]byte, error) {
 	return mac.Sum(nil), nil
 }
 
-func (m *Mac) nomarized() (string, error) {
-	return nomarized(m.Type, m.Uri, m.Method, m.Option)
+func (m *Mac) normalized() (string, error) {
+	return normalized(m.Type, m.Uri, m.Method, m.Option)
 }
 
 func (tm *TsMac) String() string {
@@ -76,7 +76,7 @@ func (tm *TsMac) digest() []byte {
 	return mac.Sum(nil)
 }
 
-func nomarized(authType AuthType, uri string, method string, option Option) (string, error) {
+func normalized(authType AuthType, uri string, method string, option Option) (string, error) {
 	u, err := url.Parse(uri)
 	if err != nil {
 		return "", err
