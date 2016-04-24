@@ -30,6 +30,11 @@ type Mac struct {
 	Option     Option
 }
 
+type TsMac struct {
+	TimeStamp  int64
+	Credential Credential
+}
+
 func (m *Mac) String() (string, error) {
 	digest, err := m.digest()
 	if err != nil {
@@ -53,6 +58,22 @@ func (m *Mac) digest() ([]byte, error) {
 
 func (m *Mac) nomarized() (string, error) {
 	return nomarized(m.Type, m.Uri, m.Method, m.Option)
+}
+
+func (tm *TsMac) String() string {
+	digest := tm.digest()
+
+	return base64.StdEncoding.EncodeToString(digest)
+}
+
+func (tm *TsMac) digest() []byte {
+	h := getHash(tm.Credential.Alg)
+
+	mac := hmac.New(h, []byte(tm.Credential.Key))
+	ns := "hawk." + strconv.Itoa(headerVersion) + ".ts" + "\n" + strconv.FormatInt(tm.TimeStamp, 10) + "\n"
+	mac.Write([]byte(ns))
+
+	return mac.Sum(nil)
 }
 
 func nomarized(authType AuthType, uri string, method string, option Option) (string, error) {
