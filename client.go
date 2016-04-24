@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"strconv"
+	"net/http"
 )
 
 type Client struct {
@@ -50,22 +51,22 @@ func (c *Client) Header(uri string, method string) (string, error) {
 	}
 
 	header := "Authorization: Hawk " +
-		"id=\"" + c.Credential.ID + "\"" +
+		`id="` + c.Credential.ID + `"` +
 		", " +
-		"ts=\"" + strconv.FormatInt(c.Option.TimeStamp, 10) + "\"" +
+		`ts="` + strconv.FormatInt(c.Option.TimeStamp, 10) + `"` +
 		", " +
-		"nonce=\"" + c.Option.Nonce + "\""
+		`nonce="` + c.Option.Nonce + `"`
 	if c.Option.Hash != "" {
-		header = header + ", " + "hash=\"" + c.Option.Hash + "\""
+		header = header + ", " + `hash="` + c.Option.Hash + `"`
 	}
 	if c.Option.Ext != "" {
-		header = header + ", " + "ext=\"" + c.Option.Ext + "\""
+		header = header + ", " + `ext="` + c.Option.Ext + `"`
 	}
-	header = header + ", " + "mac=\"" + mac + "\""
+	header = header + ", " + `mac="` + mac + `"`
 	if c.Option.App != "" {
-		header = header + ", " + "app=\"" + c.Option.App + "\""
+		header = header + ", " + `app="` + c.Option.App + `"`
 		if c.Option.Dlg != "" {
-			header = header + ", " + "dlg=\"" + c.Option.Dlg + "\""
+			header = header + ", " + `dlg="` + c.Option.Dlg + `"`
 		}
 	}
 
