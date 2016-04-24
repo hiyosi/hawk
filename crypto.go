@@ -96,6 +96,12 @@ func normalized(authType AuthType, uri string, method string, option *Option) (s
 
 	header := "hawk" + "." + strconv.Itoa(headerVersion) + "." + authType.String()
 
+	ext := ""
+	if option.Ext != "" {
+		ext = strings.Replace(option.Ext, "\\", "\\\\", -1)
+		ext = strings.Replace(ext, "\n", "\\n", -1)
+	}
+
 	ns := header + "\n" +
 		strconv.FormatInt(option.TimeStamp, 10) + "\n" +
 		option.Nonce + "\n" +
@@ -104,7 +110,12 @@ func normalized(authType AuthType, uri string, method string, option *Option) (s
 		host + "\n" +
 		port + "\n" +
 		option.Hash + "\n" +
-		option.Ext + "\n"
+		ext + "\n"
+
+	if option.App != "" {
+		ns = ns + option.App + "\n"
+		ns = ns + option.Dlg + "\n"
+	}
 
 	return ns, nil
 }
