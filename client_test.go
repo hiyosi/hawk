@@ -29,20 +29,22 @@ func TestClientHeader(t *testing.T) {
 		t.Error("got an error,", err.Error())
 	}
 
+	fmt.Println(act)
+
 	if !strings.Contains(act, "Authorization: Hawk") {
 		t.Error("actual not contains 'Authorization: Hawk'")
 	}
-	if !strings.Contains(act, "id") {
+	if !strings.Contains(act, "id=") {
 		t.Error("actual not contains 'id' attribute")
 	}
-	if !strings.Contains(act, "ts") {
+	if !strings.Contains(act, "ts=") {
 		t.Error("actual not contains 'ts' attribute")
 	}
-	if !strings.Contains(act, "nonce") {
+	if !strings.Contains(act, "nonce=") {
 		t.Error("actual not contains 'nonce' attribute")
 	}
-	if !strings.Contains(act, "ext") {
-		t.Error("actual not contains 'ext' attribute")
+	if !strings.Contains(act, "ext=") {
+		t.Error("actual not contains 'ext=' attribute")
 	}
 }
 
@@ -52,8 +54,6 @@ func TestNonce(t *testing.T) {
 	if err != nil {
 		t.Error("got an error," + err.Error())
 	}
-
-	fmt.Println(act)
 
 	if utf8.RuneCountInString(act) != byteSize * 2 {
 		t.Error("expected length=10, but actual length=", utf8.RuneCountInString(act))
