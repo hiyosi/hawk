@@ -49,17 +49,12 @@ func (c *Client) Header(uri string, method string) (string, error) {
 		return "", err
 	}
 
-	nonce, err := Nonce(8)
-	if err != nil {
-		return "", err
-	}
-
 	header := "Authorization: Hawk " +
 		"id=" + c.Credential.ID +
 		", " +
 		"ts=" + strconv.FormatInt(c.Option.TimeStamp, 10) +
 		", " +
-		"nonce=" + nonce
+		"nonce=" + c.Option.Nonce
 	if c.Option.Hash != "" {
 		header = header + ", " + "hash=" + c.Option.Hash
 	}
