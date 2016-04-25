@@ -82,13 +82,18 @@ func (tm *TsMac) digest() []byte {
 	return mac.Sum(nil)
 }
 
-func (h *PayloadHash) Hash() []byte {
+func (h *PayloadHash) hash() []byte {
 	s := getHash(h.Alg)()
 
 	ns := "hawk." + strconv.Itoa(headerVersion) + ".payload" + "\n" + h.ContentType + "\n" + h.Payload + "\n"
 	s.Write([]byte(ns))
 
 	return s.Sum(nil)
+}
+
+func (h *PayloadHash) String() string {
+	hash := h.hash()
+	return base64.StdEncoding.EncodeToString(hash)
 }
 
 func normalized(authType AuthType, uri string, method string, option *Option) (string, error) {

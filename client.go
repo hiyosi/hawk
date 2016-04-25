@@ -119,7 +119,7 @@ func (c *Client) Authenticate(res *http.Response) error {
 		Payload: c.Option.Payload,
 		Alg: c.Credential.Alg,
 	}
-	if string(ph.Hash()) != serverAuthAttributes["hash"] {
+	if ph.String() != serverAuthAttributes["hash"] {
 		return errors.New("Bad response payload mac")
 	}
 

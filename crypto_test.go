@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestString(t *testing.T) {
+func TestMac_String(t *testing.T) {
 	ts := time.Now().Unix()
 	nonce := "xyz123"
 	m := &Mac{
@@ -33,5 +33,19 @@ func TestString(t *testing.T) {
 	if act == "" {
 		t.Errorf("expected not '' but got %s", act)
 	}
+}
 
+func TestPayloadHash_Hash(t *testing.T) {
+	h := &PayloadHash{
+		ContentType: "text/plain",
+		Payload: "Thank you for flying Hawk",
+		Alg: SHA256,
+	}
+
+	expect := "Yi9LfIIFRtBEPt74PVmbTF/xVAwPn7ub15ePICfgnuY="
+	actual := h.String()
+
+	if actual != expect {
+		t.Error("invalid payload hash string.")
+	}
 }
