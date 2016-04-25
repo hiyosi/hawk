@@ -35,6 +35,12 @@ type TsMac struct {
 	Credential *Credential
 }
 
+type PayloadHash struct {
+	ContentType string
+	Payload     string
+	Alg         Alg
+}
+
 func (m *Mac) String() (string, error) {
 	digest, err := m.digest()
 	if err != nil {
@@ -44,9 +50,9 @@ func (m *Mac) String() (string, error) {
 }
 
 func (m *Mac) digest() ([]byte, error) {
-	h := getHash(m.Credential.Alg)
+	s := getHash(m.Credential.Alg)
 
-	mac := hmac.New(h, []byte(m.Credential.Key))
+	mac := hmac.New(s, []byte(m.Credential.Key))
 	ns, err := m.normalized()
 	if err != nil {
 		return nil, err
@@ -67,13 +73,22 @@ func (tm *TsMac) String() string {
 }
 
 func (tm *TsMac) digest() []byte {
-	h := getHash(tm.Credential.Alg)
+	s := getHash(tm.Credential.Alg)
 
-	mac := hmac.New(h, []byte(tm.Credential.Key))
+	mac := hmac.New(s, []byte(tm.Credential.Key))
 	ns := "hawk." + strconv.Itoa(headerVersion) + ".ts" + "\n" + strconv.FormatInt(tm.TimeStamp, 10) + "\n"
 	mac.Write([]byte(ns))
 
 	return mac.Sum(nil)
+}
+
+func (h *PayloadHash) Hash() []byte {
+	s := getHash(h.Alg)()
+
+	ns := "hawk." + strconv.Itoa(headerVersion) + ".payload" + "\n" + h.ContentType + "\n" + h.Payload + "\n"
+	s.Write([]byte(ns))
+
+	return s.Sum(nil)
 }
 
 func normalized(authType AuthType, uri string, method string, option *Option) (string, error) {

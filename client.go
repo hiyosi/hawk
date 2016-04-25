@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"strconv"
 	"net/http"
+	"strings"
+	"errors"
 )
 
 type Client struct {
@@ -21,6 +23,7 @@ type Credential struct {
 type Option struct {
 	TimeStamp   int64
 	Nonce       string
+	Payload     string
 	ContentType string
 	Hash        string
 	Ext         string
@@ -38,11 +41,11 @@ const (
 
 func (c *Client) Header(uri string, method string) (string, error) {
 	m := &Mac{
-		AuthHeader,
-		c.Credential,
-		uri,
-		method,
-		c.Option,
+		Type: AuthHeader,
+		Credential: c.Credential,
+		Uri: uri,
+		Method: method,
+		Option: c.Option,
 	}
 
 	mac, err := m.String()
@@ -73,6 +76,56 @@ func (c *Client) Header(uri string, method string) (string, error) {
 	return header, nil
 }
 
+func (c *Client) Authenticate(res *http.Response) error {
+	artifacts := *c.Option
+
+	wah := res.Header.Get("WWW-Authenticate")
+	if wah != "" {
+		// TODO: validate WWW-Authenticate Header
+	}
+
+	sah := res.Header.Get("Server-Authorization")
+	serverAuthAttributes := parseHawkHeader(sah)
+
+	artifacts.Ext = serverAuthAttributes["ext"]
+	artifacts.Hash = serverAuthAttributes["hash"]
+
+	m := &Mac{
+		Type: AuthResponse,
+		Credential: c.Credential,
+		Uri: res.Request.URL.String(),
+		Method: res.Request.Method,
+		Option: &artifacts,
+	}
+
+	mac, err := m.String()
+	if err != nil {
+		return err
+	}
+	if mac != serverAuthAttributes["mac"] {
+		return errors.New("Bad response mac")
+	}
+
+	if c.Option.Payload == "" {
+		return nil
+	}
+
+	if serverAuthAttributes["hash"] == "" {
+		return errors.New("Missing response hash attribute")
+	}
+
+	ph := &PayloadHash{
+		ContentType: res.Header.Get("Content-Type"),
+		Payload: c.Option.Payload,
+		Alg: c.Credential.Alg,
+	}
+	if string(ph.Hash()) != serverAuthAttributes["hash"] {
+		return errors.New("Bad response payload mac")
+	}
+
+	return nil
+}
+
 func Nonce(n int) (string, error) {
 	bytes := make([]byte, n)
 	_, err := rand.Read(bytes)
@@ -80,4 +133,17 @@ func Nonce(n int) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
+}
+
+func parseHawkHeader(headerVal string) map[string]string {
+	attrs := make(map[string]string)
+
+	hv  := strings.Split(strings.Split(headerVal, "Hawk ")[1], ", ")
+
+	for _, v := range hv {
+		kv := strings.Split(v, "=")
+		attrs[kv[0]] = kv[1]
+	}
+
+	return attrs
 }
