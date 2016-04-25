@@ -17,9 +17,9 @@ const headerVersion = 1
 type AuthType int
 
 const (
-	AuthHeader AuthType = iota
-	AuthResponse
-	AuthBewit
+	Header AuthType = iota
+	Response
+	Bewit
 )
 
 type Mac struct {
@@ -102,8 +102,7 @@ func normalized(authType AuthType, uri string, method string, option *Option) (s
 		return "", err
 	}
 
-	host := u.Host
-	_, port, _ := net.SplitHostPort(u.Host)
+	host, port, _ := net.SplitHostPort(u.Host)
 	if port == "" {
 		switch u.Scheme {
 		case "http":
@@ -112,9 +111,16 @@ func normalized(authType AuthType, uri string, method string, option *Option) (s
 			port = "443"
 		}
 	}
-	path := u.Path
+	if host == "" {
+		host = u.Host
+	}
 
-	header := "hawk" + "." + strconv.Itoa(headerVersion) + "." + authType.String()
+	path := u.Path
+	if u.Query().Encode() != "" {
+		path = path + "?" + u.RawQuery
+	}
+
+	header := "hawk" + "." + strconv.Itoa(headerVersion) + "." + strings.ToLower(authType.String())
 
 	ext := ""
 	if option.Ext != "" {
@@ -126,8 +132,8 @@ func normalized(authType AuthType, uri string, method string, option *Option) (s
 		strconv.FormatInt(option.TimeStamp, 10) + "\n" +
 		option.Nonce + "\n" +
 		strings.ToUpper(method) + "\n" +
-		strings.ToLower(path) + "\n" +
-		host + "\n" +
+		path + "\n" +
+		strings.ToLower(host) + "\n" +
 		port + "\n" +
 		option.Hash + "\n" +
 		ext + "\n"

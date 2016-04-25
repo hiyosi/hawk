@@ -4,9 +4,9 @@ package hawk
 
 import "fmt"
 
-const _AuthType_name = "AuthHeaderAuthResponseAuthBewit"
+const _AuthType_name = "HeaderResponseBewit"
 
-var _AuthType_index = [...]uint8{0, 10, 22, 31}
+var _AuthType_index = [...]uint8{0, 6, 14, 19}
 
 func (i AuthType) String() string {
 	if i < 0 || i >= AuthType(len(_AuthType_index)-1) {

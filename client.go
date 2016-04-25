@@ -41,7 +41,7 @@ const (
 
 func (c *Client) Header(uri string, method string) (string, error) {
 	m := &Mac{
-		Type: AuthHeader,
+		Type: Header,
 		Credential: c.Credential,
 		Uri: uri,
 		Method: method,
@@ -91,7 +91,7 @@ func (c *Client) Authenticate(res *http.Response) error {
 	artifacts.Hash = serverAuthAttributes["hash"]
 
 	m := &Mac{
-		Type: AuthResponse,
+		Type: Response,
 		Credential: c.Credential,
 		Uri: res.Request.URL.String(),
 		Method: res.Request.Method,

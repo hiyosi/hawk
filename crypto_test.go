@@ -2,26 +2,24 @@ package hawk
 
 import (
 	"testing"
-
-	"time"
 )
 
 func TestMac_String(t *testing.T) {
-	ts := time.Now().Unix()
-	nonce := "xyz123"
+	ts := int64(1353832234)
+	nonce := "j4h3g2"
 	m := &Mac{
-		Type: AuthHeader,
+		Type: Header,
 		Credential: &Credential{
-			ID: "test-id",
-			Key: "test-key",
+			ID: "j4h3g2",
+			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
 			Alg: SHA256,
 		},
-		Uri: "https://example.com/test/hawk",
+		Uri: "http://example.com:8000/resource/1?b=1&a=2",
 		Method: "GET",
 		Option: &Option{
 			TimeStamp: ts,
 			Nonce: nonce,
-			Ext: "test-ext-data",
+			Ext: "some-app-ext-data",
 		},
 	}
 
@@ -30,8 +28,11 @@ func TestMac_String(t *testing.T) {
 		t.Error("got an error", err.Error())
 	}
 
-	if act == "" {
-		t.Errorf("expected not '' but got %s", act)
+	// expected value is reference from https://github.com/hueniverse/hawk#protocol-example
+	expect := "6R4rV5iE+NPoym+WwjeHzjAGXUtLNIxmo1vpMofpLAE="
+
+	if act != expect {
+		t.Error("invalid mac.")
 	}
 }
 
@@ -42,6 +43,7 @@ func TestPayloadHash_Hash(t *testing.T) {
 		Alg: SHA256,
 	}
 
+	// expected value is reference from https://github.com/hueniverse/hawk#payload-validation
 	expect := "Yi9LfIIFRtBEPt74PVmbTF/xVAwPn7ub15ePICfgnuY="
 	actual := h.String()
 
