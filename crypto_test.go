@@ -36,7 +36,7 @@ func TestMac_String(t *testing.T) {
 	}
 }
 
-func TestPayloadHash_Hash(t *testing.T) {
+func TestPayloadHash_String(t *testing.T) {
 	h := &PayloadHash{
 		ContentType: "text/plain",
 		Payload: "Thank you for flying Hawk",
