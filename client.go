@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"errors"
+	"regexp"
 )
 
 type Client struct {
@@ -141,8 +142,9 @@ func parseHawkHeader(headerVal string) map[string]string {
 	hv  := strings.Split(strings.Split(headerVal, "Hawk ")[1], ", ")
 
 	for _, v := range hv {
-		kv := strings.Split(v, "=")
-		attrs[kv[0]] = kv[1]
+		r := regexp.MustCompile(`(\w+)="([^"\\]*)"\s*(?:,\s*|$)`)
+		group := r.FindSubmatch([]byte(v))
+		attrs[string(group[1])] = string(group[2])
 	}
 
 	return attrs
