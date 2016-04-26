@@ -3,12 +3,16 @@ package hawk
 import (
 	"testing"
 
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"time"
 	"unicode/utf8"
+	"fmt"
+	"net/url"
 )
 
-func TestClientHeader(t *testing.T) {
+func TestClient_Header(t *testing.T) {
 	c := &Client{
 		Credential: &Credential{
 			ID: "test-id",
@@ -45,7 +49,55 @@ func TestClientHeader(t *testing.T) {
 	}
 }
 
-func TestNonce(t *testing.T) {
+func TestClient_Authenticate(t *testing.T) {
+	var mockedHttpServer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Server-Authorization", `Hawk mac="odsVGUq0rCoITaiNagW22REIpqkwP9zt5FyqqOW9Zj8=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`)
+		fmt.Fprintf(w, "some reply\n")
+	})
+
+	s := httptest.NewServer(mockedHttpServer)
+	defer s.Close()
+
+	r, err := http.PostForm(s.URL, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	mockedURL := &url.URL{
+		Scheme: "http",
+		Host: "example.com:8080",
+		Path: "/resource/4",
+		RawQuery: "filter=a",
+	}
+	r.Request.URL = mockedURL
+
+	ts := int64(1453070933)
+	c := &Client{
+		Credential: &Credential{
+			ID: "123456",
+			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
+			Alg: SHA256,
+		},
+		Option: &Option{
+			TimeStamp: ts,
+			Nonce: "3hOHpR",
+			Ext: "some-app-data",
+			ContentType: "text/plain",
+			Payload: "some reply",
+			Hash: "nJjkVtBE5Y/Bk38Aiokwn0jiJxt/0S2WRSUwWLCf5xk=",
+		},
+	}
+
+	act, _ := c.Authenticate(r)
+
+	if act != true {
+		t.Error("failed to authenticate server response.")
+	}
+}
+
+func Test_Nonce(t *testing.T) {
 	byteSize := 10
 	act, err := Nonce(byteSize)
 	if err != nil {
