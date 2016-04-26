@@ -3,11 +3,11 @@ package hawk
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"strconv"
-	"net/http"
-	"strings"
 	"errors"
+	"net/http"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 type Client struct {
@@ -42,11 +42,11 @@ const (
 
 func (c *Client) Header(uri string, method string) (string, error) {
 	m := &Mac{
-		Type: Header,
+		Type:       Header,
 		Credential: c.Credential,
-		Uri: uri,
-		Method: method,
-		Option: c.Option,
+		Uri:        uri,
+		Method:     method,
+		Option:     c.Option,
 	}
 
 	mac, err := m.String()
@@ -92,11 +92,11 @@ func (c *Client) Authenticate(res *http.Response) (bool, error) {
 	artifacts.Hash = serverAuthAttributes["hash"]
 
 	m := &Mac{
-		Type: Response,
+		Type:       Response,
 		Credential: c.Credential,
-		Uri: res.Request.URL.String(),
-		Method: res.Request.Method,
-		Option: &artifacts,
+		Uri:        res.Request.URL.String(),
+		Method:     res.Request.Method,
+		Option:     &artifacts,
 	}
 
 	mac, err := m.String()
@@ -117,8 +117,8 @@ func (c *Client) Authenticate(res *http.Response) (bool, error) {
 
 	ph := &PayloadHash{
 		ContentType: res.Header.Get("Content-Type"),
-		Payload: c.Option.Payload,
-		Alg: c.Credential.Alg,
+		Payload:     c.Option.Payload,
+		Alg:         c.Credential.Alg,
 	}
 	if ph.String() != serverAuthAttributes["hash"] {
 		return false, errors.New("Bad response payload mac")
@@ -139,7 +139,7 @@ func Nonce(n int) (string, error) {
 func parseHawkHeader(headerVal string) map[string]string {
 	attrs := make(map[string]string)
 
-	hv  := strings.Split(strings.Split(headerVal, "Hawk ")[1], ", ")
+	hv := strings.Split(strings.Split(headerVal, "Hawk ")[1], ", ")
 
 	for _, v := range hv {
 		r := regexp.MustCompile(`(\w+)="([^"\\]*)"\s*(?:,\s*|$)`)
