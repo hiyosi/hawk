@@ -10,7 +10,7 @@ func TestMac_String(t *testing.T) {
 	m := &Mac{
 		Type: Header,
 		Credential: &Credential{
-			ID: "j4h3g2",
+			ID: "dh37fgj492je",
 			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
 			Alg: SHA256,
 		},
