@@ -77,7 +77,7 @@ func (c *Client) Header(uri string, method string) (string, error) {
 	return header, nil
 }
 
-func (c *Client) Authenticate(res *http.Response) error {
+func (c *Client) Authenticate(res *http.Response) (bool, error) {
 	artifacts := *c.Option
 
 	wah := res.Header.Get("WWW-Authenticate")
@@ -101,18 +101,18 @@ func (c *Client) Authenticate(res *http.Response) error {
 
 	mac, err := m.String()
 	if err != nil {
-		return err
+		return false, err
 	}
 	if mac != serverAuthAttributes["mac"] {
-		return errors.New("Bad response mac")
+		return false, errors.New("Bad response mac")
 	}
 
 	if c.Option.Payload == "" {
-		return nil
+		return false, nil
 	}
 
 	if serverAuthAttributes["hash"] == "" {
-		return errors.New("Missing response hash attribute")
+		return false, errors.New("Missing response hash attribute")
 	}
 
 	ph := &PayloadHash{
@@ -121,10 +121,10 @@ func (c *Client) Authenticate(res *http.Response) error {
 		Alg: c.Credential.Alg,
 	}
 	if ph.String() != serverAuthAttributes["hash"] {
-		return errors.New("Bad response payload mac")
+		return false, errors.New("Bad response payload mac")
 	}
 
-	return nil
+	return true, nil
 }
 
 func Nonce(n int) (string, error) {
