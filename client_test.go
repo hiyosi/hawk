@@ -3,26 +3,25 @@ package hawk
 import (
 	"testing"
 
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"time"
-	"unicode/utf8"
-	"fmt"
-	"net/url"
 )
 
 func TestClient_Header(t *testing.T) {
 	c := &Client{
 		Credential: &Credential{
-			ID: "test-id",
+			ID:  "test-id",
 			Key: "test-key",
 			Alg: SHA256,
 		},
 		Option: &Option{
 			TimeStamp: time.Now().Unix(),
-			Nonce: "xyz123",
-			Ext: "sample-ext-string",
+			Nonce:     "xyz123",
+			Ext:       "sample-ext-string",
 		},
 	}
 
@@ -66,9 +65,9 @@ func TestClient_Authenticate(t *testing.T) {
 	}
 
 	mockedURL := &url.URL{
-		Scheme: "http",
-		Host: "example.com:8080",
-		Path: "/resource/4",
+		Scheme:   "http",
+		Host:     "example.com:8080",
+		Path:     "/resource/4",
 		RawQuery: "filter=a",
 	}
 	r.Request.URL = mockedURL
@@ -76,17 +75,17 @@ func TestClient_Authenticate(t *testing.T) {
 	ts := int64(1453070933)
 	c := &Client{
 		Credential: &Credential{
-			ID: "123456",
+			ID:  "123456",
 			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
 			Alg: SHA256,
 		},
 		Option: &Option{
-			TimeStamp: ts,
-			Nonce: "3hOHpR",
-			Ext: "some-app-data",
+			TimeStamp:   ts,
+			Nonce:       "3hOHpR",
+			Ext:         "some-app-data",
 			ContentType: "text/plain",
-			Payload: "some reply",
-			Hash: "nJjkVtBE5Y/Bk38Aiokwn0jiJxt/0S2WRSUwWLCf5xk=",
+			Payload:     "some reply",
+			Hash:        "nJjkVtBE5Y/Bk38Aiokwn0jiJxt/0S2WRSUwWLCf5xk=",
 		},
 	}
 
@@ -94,17 +93,5 @@ func TestClient_Authenticate(t *testing.T) {
 
 	if act != true {
 		t.Error("failed to authenticate server response.")
-	}
-}
-
-func Test_Nonce(t *testing.T) {
-	byteSize := 10
-	act, err := Nonce(byteSize)
-	if err != nil {
-		t.Error("got an error," + err.Error())
-	}
-
-	if utf8.RuneCountInString(act) != byteSize * 2 {
-		t.Error("expected length=10, but actual length=", utf8.RuneCountInString(act))
 	}
 }
