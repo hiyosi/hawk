@@ -3,11 +3,12 @@ package hawk
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 type stubbedClock struct{}
 
-func (c *stubbedClock) Now() int64 {
+func (c *stubbedClock) Now(offset time.Duration) int64 {
 	fmt.Println("call")
 	return 1365711458
 }
@@ -21,7 +22,7 @@ func TestBewitConfig_GetBewit(t *testing.T) {
 
 	b := &BewitConfig{
 		Credential: c,
-		TtlSec:     60 * 60 * 24 * 365 * 100,
+		Ttl:        24 * time.Hour * 365 * 100,
 		Ext:        "some-app-data",
 	}
 

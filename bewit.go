@@ -7,19 +7,19 @@ import (
 )
 
 type BewitConfig struct {
-	Credential          *Credential
-	TtlSec              int64
-	Ext                 string
-	LocalTimeOffsetMsec int64
+	Credential      *Credential
+	Ttl             time.Duration
+	Ext             string
+	LocalTimeOffset time.Duration
 }
 
 type Clock interface {
-	Now() int64
+	Now(offset time.Duration) int64
 }
 type LocalClock struct{}
 
-func (c *LocalClock) Now() int64 {
-	return time.Now().Unix()
+func (c *LocalClock) Now(offset time.Duration) int64 {
+	return time.Now().Add(offset).Unix()
 }
 
 // TODO: Implement the SNTP for time sync management
@@ -35,8 +35,8 @@ func (b *BewitConfig) GetBewit(url string, clock Clock) string {
 	if clock == nil {
 		clock = &LocalClock{}
 	}
-	now := clock.Now() + b.LocalTimeOffsetMsec
-	exp := now + b.TtlSec
+	now := clock.Now(b.LocalTimeOffset)
+	exp := time.Unix(now, 0).Add(b.Ttl).Unix()
 
 	opt := &Option{
 		TimeStamp: exp,
