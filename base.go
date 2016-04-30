@@ -1,10 +1,5 @@
 package hawk
 
-import (
-	"regexp"
-	"strings"
-)
-
 type Credential struct {
 	ID  string
 	Key string
