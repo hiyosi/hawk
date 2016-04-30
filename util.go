@@ -20,7 +20,8 @@ func parseHawkHeader(headerVal string) map[string]string {
 	attrs := make(map[string]string)
 
 	hv := strings.Split(strings.Split(headerVal, "Hawk ")[1], ", ")
-
+	//FIXME: validate header (length, structure, scheme)
+	//FIXME: validate duplication, unknown-key, etc ...
 	for _, v := range hv {
 		r := regexp.MustCompile(`(\w+)="([^"\\]*)"\s*(?:,\s*|$)`)
 		group := r.FindSubmatch([]byte(v))
