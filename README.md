@@ -1,2 +1,2 @@
 # hawk
-[![Build Status](https://drone.io/github.com/hiyosi/hawk/status.png)](https://drone.io/github.com/hiyosi/hawk/latest)
+[![Build Status](https://travis-ci.org/hiyosi/hawk.svg?branch=master)](https://travis-ci.org/hiyosi/hawk)
