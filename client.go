@@ -25,7 +25,7 @@ func (c *Client) Header(uri string, method string) (string, error) {
 		return "", err
 	}
 
-	header := "Authorization: Hawk " +
+	header := "Hawk " +
 		`id="` + c.Credential.ID + `"` +
 		", " +
 		`ts="` + strconv.FormatInt(c.Option.TimeStamp, 10) + `"` +
