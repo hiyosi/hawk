@@ -13,15 +13,6 @@ type BewitConfig struct {
 	LocalTimeOffset time.Duration
 }
 
-type Clock interface {
-	Now(offset time.Duration) int64
-}
-type LocalClock struct{}
-
-func (c *LocalClock) Now(offset time.Duration) int64 {
-	return time.Now().Add(offset).Unix()
-}
-
 // TODO: Implement the SNTP for time sync management
 
 func (b *BewitConfig) GetBewit(url string, clock Clock) string {
