@@ -25,6 +25,15 @@ func (c *Client) Header(uri string, method string) (string, error) {
 		return "", err
 	}
 
+	if c.Option.Hash == "" && c.Option.ContentType != "" {
+		ph := &PayloadHash{
+			ContentType: c.Option.ContentType,
+			Payload:     c.Option.Payload,
+			Alg:         c.Credential.Alg,
+		}
+		c.Option.Hash = ph.String()
+	}
+
 	header := "Hawk " +
 		`id="` + c.Credential.ID + `"` +
 		", " +

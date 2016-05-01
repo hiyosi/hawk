@@ -12,7 +12,7 @@ import (
 )
 
 func TestClient_Header(t *testing.T) {
-	c := &Client{
+	c1 := &Client{
 		Credential: &Credential{
 			ID:  "test-id",
 			Key: "test-key",
@@ -25,26 +25,116 @@ func TestClient_Header(t *testing.T) {
 		},
 	}
 
-	url := "https://example.com/test/hawk"
-	act, err := c.Header(url, "GET")
+	url1 := "https://example.com/test/hawk"
+	act1, err := c1.Header(url1, "GET")
 	if err != nil {
 		t.Error("got an error,", err.Error())
 	}
 
-	if !strings.Contains(act, "Hawk") {
+	if !strings.Contains(act1, "Hawk") {
 		t.Error("actual not contains 'Authorization: Hawk'")
 	}
-	if !strings.Contains(act, "id=") {
+	if !strings.Contains(act1, "id=") {
 		t.Error("actual not contains 'id' attribute")
 	}
-	if !strings.Contains(act, "ts=") {
+	if !strings.Contains(act1, "ts=") {
 		t.Error("actual not contains 'ts' attribute")
 	}
-	if !strings.Contains(act, "nonce=") {
+	if !strings.Contains(act1, "nonce=") {
 		t.Error("actual not contains 'nonce' attribute")
 	}
-	if !strings.Contains(act, "ext=") {
+	if !strings.Contains(act1, "ext=") {
 		t.Error("actual not contains 'ext=' attribute")
+	}
+
+	// specified payload
+	c2 := &Client{
+		Credential: &Credential{
+			ID:  "test-id",
+			Key: "test-key",
+			Alg: SHA256,
+		},
+		Option: &Option{
+			TimeStamp:   time.Now().Unix(),
+			Nonce:       "xyz123",
+			Ext:         "sample-ext-string",
+			ContentType: "text/plain",
+			Payload:     "something to write about",
+		},
+	}
+
+	url2 := "http://example.net/somewhere/over/the/rainbow"
+	act2, err := c2.Header(url2, "POST")
+	if err != nil {
+		t.Error("got an error,", err.Error())
+	}
+
+	if !strings.Contains(act2, "Hawk") {
+		t.Error("actual not contains 'Authorization: Hawk'")
+	}
+	if !strings.Contains(act2, "id=") {
+		t.Error("actual not contains 'id' attribute")
+	}
+	if !strings.Contains(act2, "ts=") {
+		t.Error("actual not contains 'ts' attribute")
+	}
+	if !strings.Contains(act2, "nonce=") {
+		t.Error("actual not contains 'nonce' attribute")
+	}
+	if !strings.Contains(act2, "ext=") {
+		t.Error("actual not contains 'ext=' attribute")
+	}
+	if !strings.Contains(act2, "hash=") {
+		t.Error("actual not contains 'hash=' attribute")
+	}
+
+	// specified app and dlg param
+	c3 := &Client{
+		Credential: &Credential{
+			ID:  "test-id",
+			Key: "test-key",
+			Alg: SHA256,
+		},
+		Option: &Option{
+			TimeStamp:   time.Now().Unix(),
+			Nonce:       "xyz123",
+			Ext:         "sample-ext-string",
+			ContentType: "text/plain",
+			Payload:     "something to write about",
+			App:         "some-app-id",
+			Dlg:         "some-dlg",
+		},
+	}
+
+	url3 := "http://example.net/somewhere/over/the/rainbow"
+	act3, err := c3.Header(url3, "GET")
+	if err != nil {
+		t.Error("got an error,", err.Error())
+	}
+
+	if !strings.Contains(act3, "Hawk") {
+		t.Error("actual not contains 'Authorization: Hawk'")
+	}
+	if !strings.Contains(act3, "id=") {
+		t.Error("actual not contains 'id' attribute")
+	}
+	if !strings.Contains(act3, "ts=") {
+		t.Error("actual not contains 'ts' attribute")
+	}
+	if !strings.Contains(act3, "nonce=") {
+		t.Error("actual not contains 'nonce' attribute")
+	}
+	if !strings.Contains(act3, "ext=") {
+		t.Error("actual not contains 'ext=' attribute")
+	}
+	if !strings.Contains(act3, "hash=") {
+		t.Error("actual not contains 'hash=' attribute")
+	}
+	if !strings.Contains(act3, "app=") {
+		t.Error("actual not contains 'app=' attribute")
+	}
+	if !strings.Contains(act3, "dlg=") {
+		t.Error("actual not contains 'dlg=' attribute")
 	}
 }
 
