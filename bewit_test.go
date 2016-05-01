@@ -18,16 +18,52 @@ func TestBewitConfig_GetBewit(t *testing.T) {
 		Alg: SHA256,
 	}
 
-	b := &BewitConfig{
+	b1 := &BewitConfig{
 		Credential: c,
 		Ttl:        24 * time.Hour * 365 * 100,
 		Ext:        "some-app-data",
 	}
 
-	actual := b.GetBewit("http://example.com/resource/4?a=1&b=2", &stubbedClock{})
-	expect := "MTIzNDU2XDQ1MTkzMTE0NThcYkkwanFlS1prUHE0V1hRMmkxK0NrQ2lOanZEc3BSVkNGajlmbElqMXphWT1cc29tZS1hcHAtZGF0YQ"
+	actual1 := b1.GetBewit("http://example.com/resource/4?a=1&b=2", &stubbedClock{})
+	expect1 := "MTIzNDU2XDQ1MTkzMTE0NThcYkkwanFlS1prUHE0V1hRMmkxK0NrQ2lOanZEc3BSVkNGajlmbElqMXphWT1cc29tZS1hcHAtZGF0YQ"
 
-	if actual != expect {
-		t.Errorf("invalid bewit: %s", actual)
+	if actual1 != expect1 {
+		t.Errorf("invalid bewit: %s", actual1)
+	}
+
+	// url parameter is null-string
+	actual2 := b1.GetBewit("", &stubbedClock{})
+	if actual2 != "" {
+		t.Error("expect null-string, but got ", actual2)
+	}
+
+	b3 := &BewitConfig{
+		Credential: nil,
+		Ttl:        24 * time.Hour * 365 * 100,
+		Ext:        "some-app-data",
+	}
+
+	// credential is nil
+	actual3 := b3.GetBewit("http://example.com/resource/4?a=1&b=2", &stubbedClock{})
+	if actual3 != "" {
+		t.Error("expect null-string, but got ", actual2)
+	}
+
+	b4 := &BewitConfig{
+		Credential: &Credential{},
+		Ttl:        24 * time.Hour * 365 * 100,
+		Ext:        "some-app-data",
+	}
+
+	// Credential members are nil
+	actual4 := b4.GetBewit("http://example.com/resource/4?a=1&b=2", &stubbedClock{})
+	if actual4 != "" {
+		t.Error("expect null-string, but got ", actual2)
+	}
+
+	// Clock is nil
+	actual5 := b1.GetBewit("http://example.com/resource/4?a=1&b=2", nil)
+	if actual5 == "" {
+		t.Error("expect result is not null, but got null value")
 	}
 }
