@@ -28,7 +28,7 @@ type CredentialGetter interface {
 }
 
 type NonceValidator interface {
-	Validate(nonce string) bool
+	Validate(key, nonce string, ts int64) bool
 }
 
 func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
@@ -117,7 +117,7 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 	}
 
 	if s.NonceValidator != nil {
-		if !s.NonceValidator.Validate(artifacts.Nonce) {
+		if !s.NonceValidator.Validate(cred.Key, artifacts.Nonce, artifacts.TimeStamp) {
 			return nil, errors.New("Invalid nonce.")
 		}
 	}
