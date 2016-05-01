@@ -19,6 +19,9 @@ func (b *BewitConfig) GetBewit(url string, clock Clock) string {
 	if url == "" {
 		return ""
 	}
+	if b.Credential == nil {
+		return ""
+	}
 	if b.Credential.ID == "" || b.Credential.Key == "" || b.Credential.Alg == 0 {
 		return ""
 	}
