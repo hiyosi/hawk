@@ -14,6 +14,7 @@ type Server struct {
 	TimeStampSkew    time.Duration
 	LocaltimeOffset  time.Duration
 	Payload          string
+	AuthOption       *AuthOption
 }
 
 type AuthOption struct {
@@ -30,17 +31,17 @@ type NonceValidator interface {
 	Validate(nonce string) bool
 }
 
-func (s *Server) Authenticate(req *http.Request, authOpt *AuthOption) (*Credential, error) {
+func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 	// 0 is treated as empty. set to default value.
 	if s.TimeStampSkew == 0 {
 		s.TimeStampSkew = 60 * time.Second
 	}
 
 	var clock Clock
-	if authOpt == nil || authOpt.Clock == nil {
+	if s.AuthOption == nil || s.AuthOption.Clock == nil {
 		clock = &LocalClock{}
 	} else {
-		clock = authOpt.Clock
+		clock = s.AuthOption.Clock
 	}
 	now := clock.Now(s.LocaltimeOffset)
 
@@ -71,14 +72,14 @@ func (s *Server) Authenticate(req *http.Request, authOpt *AuthOption) (*Credenti
 	}
 
 	var host string
-	if authOpt != nil {
+	if s.AuthOption != nil {
 		// set to custom host(and port) value
-		if authOpt.HostNameHeader != "" {
-			host = req.Header.Get(authOpt.HostNameHeader)
+		if s.AuthOption.HostNameHeader != "" {
+			host = req.Header.Get(s.AuthOption.HostNameHeader)
 		}
-		if authOpt.HostPort != "" {
+		if s.AuthOption.HostPort != "" {
 			// forces override a value.
-			host = authOpt.HostPort
+			host = s.AuthOption.HostPort
 		}
 	}
 

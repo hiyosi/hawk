@@ -52,7 +52,7 @@ func TestServer_Authenticate(t *testing.T) {
 		CredentialGetter: credentialStore,
 	}
 
-	act, err := s.Authenticate(r, nil)
+	act, err := s.Authenticate(r)
 	if err != nil {
 		t.Errorf("return error, %s", err)
 	} else {
@@ -79,7 +79,7 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 		CredentialGetter: credentialStore,
 	}
 
-	_, err := s.Authenticate(r, nil)
+	_, err := s.Authenticate(r)
 	if err == nil {
 		t.Errorf("Not Returned error.")
 	}
