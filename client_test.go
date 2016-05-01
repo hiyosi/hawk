@@ -107,7 +107,7 @@ func TestClient_Header(t *testing.T) {
 	}
 
 	url3 := "http://example.net/somewhere/over/the/rainbow"
-	act3, err := c3.Header(url3, "GET")
+	act3, err := c3.Header(url3, "POST")
 	if err != nil {
 		t.Error("got an error,", err.Error())
 	}

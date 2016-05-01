@@ -25,7 +25,7 @@ func (c *Client) Header(uri string, method string) (string, error) {
 		return "", err
 	}
 
-	if c.Option.Hash == "" && c.Option.ContentType != "" {
+	if c.Option.Hash == "" && (method == "POST" || method == "PUT") {
 		ph := &PayloadHash{
 			ContentType: c.Option.ContentType,
 			Payload:     c.Option.Payload,
