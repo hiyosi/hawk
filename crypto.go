@@ -44,10 +44,7 @@ type PayloadHash struct {
 
 func (m *Mac) String() (string, error) {
 	digest, err := m.digest()
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(digest), nil
+	return base64.StdEncoding.EncodeToString(digest), err
 }
 
 func (m *Mac) digest() ([]byte, error) {
@@ -69,7 +66,6 @@ func (m *Mac) normalized() (string, error) {
 
 func (tm *TsMac) String() string {
 	digest := tm.digest()
-
 	return base64.StdEncoding.EncodeToString(digest)
 }
 
