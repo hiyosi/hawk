@@ -18,9 +18,9 @@ type Server struct {
 }
 
 type AuthOption struct {
-	HostNameHeader string
-	HostPort       string
-	Clock          Clock
+	CustomHostNameHeader string
+	CustomHostPort       string
+	CustomClock          Clock
 }
 
 type CredentialGetter interface {
@@ -37,12 +37,7 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 		s.TimeStampSkew = 60 * time.Second
 	}
 
-	var clock Clock
-	if s.AuthOption == nil || s.AuthOption.Clock == nil {
-		clock = &LocalClock{}
-	} else {
-		clock = s.AuthOption.Clock
-	}
+	clock := getClock(s.AuthOption)
 	now := clock.Now(s.LocaltimeOffset)
 
 	authzHeader := req.Header.Get("Authorization")
@@ -74,12 +69,12 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 	var host string
 	if s.AuthOption != nil {
 		// set to custom host(and port) value
-		if s.AuthOption.HostNameHeader != "" {
-			host = req.Header.Get(s.AuthOption.HostNameHeader)
+		if s.AuthOption.CustomHostNameHeader != "" {
+			host = req.Header.Get(s.AuthOption.CustomHostNameHeader)
 		}
-		if s.AuthOption.HostPort != "" {
+		if s.AuthOption.CustomHostPort != "" {
 			// forces override a value.
-			host = s.AuthOption.HostPort
+			host = s.AuthOption.CustomHostPort
 		}
 	}
 
@@ -128,4 +123,14 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 	}
 
 	return cred, nil
+}
+
+func getClock(authOption *AuthOption) Clock {
+	var clock Clock
+	if authOption == nil || authOption.CustomClock == nil {
+		clock = &LocalClock{}
+	} else {
+		clock = authOption.CustomClock
+	}
+	return clock
 }
