@@ -87,8 +87,8 @@ func (c *Client) Authenticate(res *http.Response) (bool, error) {
 		return false, errors.New("Bad response mac")
 	}
 
-	if c.Option.Payload == "" {
-		return false, nil
+	if c.Option.Payload == "" && res.Request.Method != "POST" && res.Request.Method != "PUT" {
+		return true, nil
 	}
 
 	if serverAuthAttributes["hash"] == "" {
