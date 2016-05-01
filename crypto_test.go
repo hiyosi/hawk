@@ -56,13 +56,13 @@ func TestMac_String_With_CustomHost(t *testing.T) {
 	if err != nil {
 		t.Error("got an error", err.Error())
 	}
-
 	expect1 := "6R4rV5iE+NPoym+WwjeHzjAGXUtLNIxmo1vpMofpLAE="
 
 	if act1 != expect1 {
 		t.Error("invalid mac.")
 	}
 
+	// specified HostPort String.
 	m2 := &Mac{
 		Type: Header,
 		Credential: &Credential{
@@ -84,10 +84,38 @@ func TestMac_String_With_CustomHost(t *testing.T) {
 	if err != nil {
 		t.Error("got an error", err.Error())
 	}
-
 	expect2 := "fmzTiKheFFqAeWWoVIt6vIflByB9X8TeYQjCdvq9bf4="
 
 	if act2 != expect2 {
+		t.Error("invalid mac.")
+	}
+
+	// specified App and Dlg
+	m3 := &Mac{
+		Type: Header,
+		Credential: &Credential{
+			ID:  "dh37fgj492je",
+			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
+			Alg: SHA256,
+		},
+		Uri:    "http://example.com:8080/resource/1?b=1&a=2",
+		Method: "GET",
+		Option: &Option{
+			TimeStamp: int64(1353832234),
+			Nonce:     "j4h3g2",
+			Ext:       "some-app-ext-data",
+			App:       "some-app-id",
+			Dlg:       "some-dlg",
+		},
+	}
+
+	act3, err := m3.String()
+	if err != nil {
+		t.Error("got an error", err.Error())
+	}
+	expect3 := "3glACULyTDnGSBEBpkFbRxRTFSXauan/Jk7NpA1MKl0="
+
+	if act3 != expect3 {
 		t.Error("invalid mac.")
 	}
 }
