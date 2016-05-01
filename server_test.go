@@ -84,3 +84,30 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 		t.Errorf("Not Returned error.")
 	}
 }
+
+func TestServer_AuthenticateBewit(t *testing.T) {
+	id := "123456"
+
+	credentialStore := &testCredentialStore{
+		ID:  id,
+		Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
+		Alg: SHA256,
+	}
+
+	rawPath := "/resource/4?a=1&b=2&bewit=MTIzNDU2XDQ1MTE0ODQ2MjFcMzFjMmNkbUJFd1NJRVZDOVkva1NFb2c3d3YrdEVNWjZ3RXNmOGNHU2FXQT1cc29tZS1hcHAtZGF0YQ"
+	r, _ := http.NewRequest("GET", "http://example.com:8080"+rawPath, nil)
+	r.URL.RawPath = rawPath
+
+	s := &Server{
+		CredentialGetter: credentialStore,
+	}
+
+	act, err := s.AuthenticateBewit(r)
+	if err != nil {
+		t.Errorf("error, %s", err)
+	}
+
+	if act == nil {
+		t.Errorf("returned nil.")
+	}
+}

@@ -1,10 +1,13 @@
 package hawk
 
 import (
+	"encoding/base64"
 	"errors"
 	"math"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -125,6 +128,101 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 	return cred, nil
 }
 
+func (s *Server) AuthenticateBewit(req *http.Request) (*Credential, error) {
+	clock := getClock(s.AuthOption)
+	now := clock.Now(s.LocaltimeOffset)
+
+	encodedBewit := req.URL.Query().Get("bewit")
+	if encodedBewit == "" {
+		return nil, errors.New("Empty bewit.")
+	}
+
+	if req.Method != "GET" && req.Method != "HEAD" {
+		return nil, errors.New("Invalid method.")
+	}
+
+	if req.Header.Get("Authorization") != "" {
+		return nil, errors.New("Multiple authentications")
+	}
+
+	rawBewit, err := base64.RawURLEncoding.DecodeString(encodedBewit)
+	if err != nil {
+		return nil, errors.New("Failed to decode bewit parameter.")
+	}
+
+	parsedBewit := strings.Split(string(rawBewit), "\\")
+	if len(parsedBewit) != 4 {
+		return nil, errors.New("Invalid bewit structure.")
+	}
+
+	bewit := map[string]string{
+		"id":  parsedBewit[0],
+		"exp": parsedBewit[1],
+		"mac": parsedBewit[2],
+		"ext": parsedBewit[3],
+	}
+
+	if bewit["id"] == "" || bewit["exp"] == "" || bewit["mac"] == "" {
+		return nil, errors.New("Missing bewit attributes.")
+	}
+
+	ts, err := strconv.ParseInt(bewit["exp"], 10, 64)
+	if err != nil {
+		return nil, errors.New("Invalid ts value.")
+	}
+
+	if (ts * 1000) <= (now * 1000) {
+		return nil, errors.New("Access expired.")
+	}
+
+	cred, err := s.CredentialGetter.GetCredential(bewit["id"])
+	if err != nil {
+		// FIXME: logging error
+		return nil, errors.New("Failed to get Credential.")
+	}
+	if cred.Key == "" {
+		return nil, errors.New("Invalid Credential.")
+	}
+
+	removedBewitURL := removeBewitParam(req.URL)
+
+	var host string
+	if s.AuthOption != nil {
+		// set to custom host(and port) value
+		if s.AuthOption.CustomHostNameHeader != "" {
+			host = req.Header.Get(s.AuthOption.CustomHostNameHeader)
+		}
+		if s.AuthOption.CustomHostPort != "" {
+			// forces override a value.
+			host = s.AuthOption.CustomHostPort
+		}
+	}
+
+	m := &Mac{
+		Type:       Bewit,
+		Credential: cred,
+		Uri:        removedBewitURL.String(),
+		Method:     req.Method,
+		HostPort:   host,
+		Option: &Option{
+			TimeStamp: ts,
+			Nonce:     "",
+			Ext:       bewit["ext"],
+		},
+	}
+	mac, err := m.String()
+	if err != nil {
+		//FIXME: logging error
+		return nil, errors.New("Failed to calculate MAC.")
+	}
+
+	if !fixedTimeComparison(mac, bewit["mac"]) {
+		return nil, errors.New("Bad mac.")
+	}
+
+	return cred, nil
+}
+
 func getClock(authOption *AuthOption) Clock {
 	var clock Clock
 	if authOption == nil || authOption.CustomClock == nil {
@@ -133,4 +231,18 @@ func getClock(authOption *AuthOption) Clock {
 		clock = authOption.CustomClock
 	}
 	return clock
+}
+
+func removeBewitParam(u *url.URL) url.URL {
+	removedQuery := &url.Values{}
+	for key, _ := range u.Query() {
+		if key == "bewit" {
+			continue
+		}
+		removedQuery.Add(key, u.Query().Get(key))
+	}
+	removedUrl := *u
+	removedUrl.RawQuery = removedQuery.Encode()
+
+	return removedUrl
 }

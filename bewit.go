@@ -46,5 +46,5 @@ func (b *BewitConfig) GetBewit(url string, clock Clock) string {
 
 	bewit := b.Credential.ID + "\\" + strconv.FormatInt(exp, 10) + "\\" + mac + "\\" + b.Ext
 
-	return base64.URLEncoding.EncodeToString([]byte(bewit))
+	return base64.RawURLEncoding.EncodeToString([]byte(bewit))
 }
