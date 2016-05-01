@@ -27,6 +27,7 @@ type Mac struct {
 	Credential *Credential
 	Uri        string
 	Method     string
+	HostPort   string
 	Option     *Option
 }
 
@@ -63,7 +64,7 @@ func (m *Mac) digest() ([]byte, error) {
 }
 
 func (m *Mac) normalized() (string, error) {
-	return normalized(m.Type, m.Uri, m.Method, m.Option)
+	return normalized(m.Type, m.Uri, m.Method, m.HostPort, m.Option)
 }
 
 func (tm *TsMac) String() string {
@@ -96,13 +97,20 @@ func (h *PayloadHash) hash() []byte {
 	return s.Sum(nil)
 }
 
-func normalized(authType AuthType, uri string, method string, option *Option) (string, error) {
+func normalized(authType AuthType, uri, method, customHost string, option *Option) (string, error) {
 	u, err := url.Parse(uri)
 	if err != nil {
 		return "", err
 	}
 
-	host, port, _ := net.SplitHostPort(u.Host)
+	var h string
+	if customHost != "" {
+		h = customHost
+	} else {
+		h = u.Host
+	}
+
+	host, port, _ := net.SplitHostPort(h)
 	if port == "" {
 		switch u.Scheme {
 		case "http":
@@ -112,7 +120,11 @@ func normalized(authType AuthType, uri string, method string, option *Option) (s
 		}
 	}
 	if host == "" {
-		host = u.Host
+		if customHost != "" {
+			host = customHost
+		} else {
+			host = u.Host
+		}
 	}
 
 	path := u.Path

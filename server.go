@@ -16,6 +16,12 @@ type Server struct {
 	Payload          string
 }
 
+type AuthOption struct {
+	HostNameHeader string
+	HostPort       string
+	Clock          Clock
+}
+
 type CredentialGetter interface {
 	GetCredential(id string) (*Credential, error)
 }
@@ -24,14 +30,17 @@ type NonceValidator interface {
 	Validate(nonce string) bool
 }
 
-func (s *Server) Authenticate(req *http.Request, clock Clock) (*Credential, error) {
+func (s *Server) Authenticate(req *http.Request, authOpt *AuthOption) (*Credential, error) {
 	// 0 is treated as empty. set to default value.
 	if s.TimeStampSkew == 0 {
 		s.TimeStampSkew = 60 * time.Second
 	}
 
-	if clock == nil {
+	var clock Clock
+	if authOpt == nil || authOpt.Clock == nil {
 		clock = &LocalClock{}
+	} else {
+		clock = authOpt.Clock
 	}
 	now := clock.Now(s.LocaltimeOffset)
 
@@ -61,11 +70,24 @@ func (s *Server) Authenticate(req *http.Request, clock Clock) (*Credential, erro
 		return nil, errors.New("Invalid Credential.")
 	}
 
+	var host string
+	if authOpt != nil {
+		// set to custom host(and port) value
+		if authOpt.HostNameHeader != "" {
+			host = req.Header.Get(authOpt.HostNameHeader)
+		}
+		if authOpt.HostPort != "" {
+			// forces override a value.
+			host = authOpt.HostPort
+		}
+	}
+
 	m := &Mac{
 		Type:       Header,
 		Credential: cred,
 		Uri:        req.URL.String(),
 		Method:     req.Method,
+		HostPort:   host,
 		Option:     artifacts,
 	}
 	mac, err := m.String()
