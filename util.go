@@ -10,10 +10,7 @@ import (
 func Nonce(n int) (string, error) {
 	bytes := make([]byte, n)
 	_, err := rand.Read(bytes)
-	if err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
+	return hex.EncodeToString(bytes), err
 }
 
 func parseHawkHeader(headerVal string) map[string]string {
