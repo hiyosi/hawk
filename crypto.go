@@ -87,7 +87,7 @@ func (h *PayloadHash) String() string {
 func (h *PayloadHash) hash() []byte {
 	s := getHash(h.Alg)()
 
-	ns := "hawk." + strconv.Itoa(headerVersion) + ".payload" + "\n" + h.ContentType + "\n" + h.Payload + "\n"
+	ns := "hawk." + strconv.Itoa(headerVersion) + ".payload" + "\n" + strings.ToLower(h.ContentType) + "\n" + h.Payload + "\n"
 	s.Write([]byte(ns))
 
 	return s.Sum(nil)
