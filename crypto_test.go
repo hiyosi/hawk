@@ -34,6 +34,64 @@ func TestMac_String(t *testing.T) {
 	}
 }
 
+func TestMac_String_With_CustomHost(t *testing.T) {
+	m1 := &Mac{
+		Type: Header,
+		Credential: &Credential{
+			ID:  "dh37fgj492je",
+			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
+			Alg: SHA256,
+		},
+		Uri:      "http://www.example.com/resource/1?b=1&a=2",
+		HostPort: "example.com:8000",
+		Method:   "GET",
+		Option: &Option{
+			TimeStamp: int64(1353832234),
+			Nonce:     "j4h3g2",
+			Ext:       "some-app-ext-data",
+		},
+	}
+
+	act1, err := m1.String()
+	if err != nil {
+		t.Error("got an error", err.Error())
+	}
+
+	expect1 := "6R4rV5iE+NPoym+WwjeHzjAGXUtLNIxmo1vpMofpLAE="
+
+	if act1 != expect1 {
+		t.Error("invalid mac.")
+	}
+
+	m2 := &Mac{
+		Type: Header,
+		Credential: &Credential{
+			ID:  "dh37fgj492je",
+			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
+			Alg: SHA256,
+		},
+		Uri:      "http://www.example.com/resource/1?b=1&a=2",
+		HostPort: "example.com",
+		Method:   "GET",
+		Option: &Option{
+			TimeStamp: int64(1353832234),
+			Nonce:     "j4h3g2",
+			Ext:       "some-app-ext-data",
+		},
+	}
+
+	act2, err := m2.String()
+	if err != nil {
+		t.Error("got an error", err.Error())
+	}
+
+	expect2 := "fmzTiKheFFqAeWWoVIt6vIflByB9X8TeYQjCdvq9bf4="
+
+	if act2 != expect2 {
+		t.Error("invalid mac.")
+	}
+}
+
 func TestTsMac_String(t *testing.T) {
 	tm := &TsMac{
 		TimeStamp: 1365741469,
