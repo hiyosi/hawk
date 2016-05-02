@@ -62,18 +62,6 @@ func TestServer_Authenticate(t *testing.T) {
 		}
 	}
 
-	// failed to get credential
-	credentialStore1 := &testCredentialStore{}
-
-	s1 := &Server{
-		CredentialGetter: credentialStore1,
-	}
-
-	act1, err := s1.Authenticate(r)
-	if act1 != nil {
-		t.Error("got an server autnentication result, expected=nil")
-	}
-
 	// specified CustomeHostHeader
 	c2 := &Client{
 		Credential: &Credential{
@@ -285,6 +273,18 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 	_, err = s3.Authenticate(r3)
 	if err == nil {
 		t.Error("expected return error, buto got nil")
+	}
+
+	// failed to get credential
+	credentialStore1 := &testCredentialStore{}
+
+	s4 := &Server{
+		CredentialGetter: credentialStore1,
+	}
+
+	act4, err := s4.Authenticate(r)
+	if act4 != nil {
+		t.Error("got an server autnentication result, expected=nil")
 	}
 }
 
@@ -508,5 +508,44 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 	}
 	if act9 != nil {
 		t.Errorf("expected nil but, returned not nil.")
+	}
+}
+
+func TestServer_Header(t *testing.T) {
+	credentialStore := &testCredentialStore{
+		ID:  "123456",
+		Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
+		Alg: SHA256,
+	}
+
+	cred := &Credential{
+		ID:  credentialStore.ID,
+		Key: credentialStore.Key,
+		Alg: credentialStore.Alg,
+	}
+
+	option := &Option{
+		TimeStamp:   int64(1398546787),
+		Payload:     "some reply",
+		ContentType: "text/plain",
+		Ext:         "response-specific",
+	}
+
+	s := &Server{
+		CredentialGetter: credentialStore,
+	}
+
+	r, _ := http.NewRequest("POST", "http://example.com:8080/resource/4?filter=a", nil)
+	r.Header.Set("Authorization", `Hawk mac="dvIvMThwi28J61Jc3P0ryAhuKpanU63GXdx6hkmQkJA=", ts="1398546787", nonce="xUwusx", ext="some-app-data", hash="nJjkVtBE5Y/Bk38Aiokwn0jiJxt/0S2WRSUwWLCf5xk="`)
+	r.Header.Set("Content-Type", "text/plain")
+
+	act, err := s.Header(r, cred, option)
+	expect := `Hawk mac="n14wVJK4cOxAytPUMc5bPezQzuJGl5n7MYXhFQgEKsE=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`
+
+	if err != nil {
+		t.Error("unexpected error, ", err)
+	}
+	if act != expect {
+		t.Error("unexpected header response, actual=" + act)
 	}
 }

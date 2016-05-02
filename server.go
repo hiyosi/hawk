@@ -44,23 +44,23 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 	now := clock.Now(s.LocaltimeOffset)
 
 	authzHeader := req.Header.Get("Authorization")
-	authAttributes := parseHawkHeader(authzHeader)
+	authzAttributes := parseHawkHeader(authzHeader)
 
-	ts, err := strconv.ParseInt(authAttributes["ts"], 10, 64)
+	ts, err := strconv.ParseInt(authzAttributes["ts"], 10, 64)
 	if err != nil {
 		return nil, errors.New("Invalid ts value.")
 	}
 
 	artifacts := &Option{
 		TimeStamp: ts,
-		Nonce:     authAttributes["nonce"],
-		Hash:      authAttributes["hash"],
-		Ext:       authAttributes["ext"],
-		App:       authAttributes["app"],
-		Dlg:       authAttributes["dlg"],
+		Nonce:     authzAttributes["nonce"],
+		Hash:      authzAttributes["hash"],
+		Ext:       authzAttributes["ext"],
+		App:       authzAttributes["app"],
+		Dlg:       authzAttributes["dlg"],
 	}
 
-	cred, err := s.CredentialGetter.GetCredential(authAttributes["id"])
+	cred, err := s.CredentialGetter.GetCredential(authzAttributes["id"])
 	if err != nil {
 		// FIXME: logging error
 		return nil, errors.New("Failed to get Credential.")
@@ -95,7 +95,7 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 		return nil, errors.New("Failed to calculate MAC.")
 	}
 
-	if !fixedTimeComparison(mac, authAttributes["mac"]) {
+	if !fixedTimeComparison(mac, authzAttributes["mac"]) {
 		return nil, errors.New("Bad MAC")
 	}
 
@@ -220,6 +220,72 @@ func (s *Server) AuthenticateBewit(req *http.Request) (*Credential, error) {
 	}
 
 	return cred, nil
+}
+
+func (s *Server) Header(req *http.Request, cred *Credential, opt *Option) (string, error) {
+	authzHeader := req.Header.Get("Authorization")
+	authzAttributes := parseHawkHeader(authzHeader)
+
+	if opt.Hash == "" && (req.Method == "POST" || req.Method == "PUT") {
+		ph := &PayloadHash{
+			ContentType: opt.ContentType,
+			Payload:     opt.Payload,
+			Alg:         cred.Alg,
+		}
+		opt.Hash = ph.String()
+	}
+
+	ts, err := strconv.ParseInt(authzAttributes["ts"], 10, 64)
+	if err != nil {
+		return "", errors.New("Invalid ts value.")
+	}
+	artifacts := &Option{
+		TimeStamp: ts,
+		Nonce:     authzAttributes["nonce"],
+		Hash:      opt.Hash,
+		Ext:       opt.Ext,
+		App:       authzAttributes["app"],
+		Dlg:       authzAttributes["dlg"],
+	}
+
+	var host string
+	if s.AuthOption != nil {
+		// set to custom host(and port) value
+		if s.AuthOption.CustomHostNameHeader != "" {
+			host = req.Header.Get(s.AuthOption.CustomHostNameHeader)
+		}
+		if s.AuthOption.CustomHostPort != "" {
+			// forces override a value.
+			host = s.AuthOption.CustomHostPort
+		}
+	}
+
+	m := &Mac{
+		Type:       Response,
+		Credential: cred,
+		Uri:        req.URL.String(),
+		Method:     req.Method,
+		HostPort:   host,
+		Option:     artifacts,
+	}
+
+	mac, err := m.String()
+	if err != nil {
+		//FIXME: logging error
+		return "", errors.New("Failed to calculate MAC.")
+	}
+
+	header := "Hawk " + `mac="` + mac + `"`
+
+	if opt.Hash != "" {
+		header = header + ", " + `hash="` + opt.Hash + `"`
+	}
+
+	if opt.Ext != "" {
+		header = header + ", " + `ext="` + opt.Ext + `"`
+	}
+
+	return header, nil
 }
 
 func getClock(authOption *AuthOption) Clock {
