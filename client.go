@@ -11,7 +11,16 @@ type Client struct {
 	Option     *Option
 }
 
-func (c *Client) Header(uri string, method string) (string, error) {
+func (c *Client) Header(method, uri string) (string, error) {
+	if c.Option.Hash == "" && (method == "POST" || method == "PUT") {
+		ph := &PayloadHash{
+			ContentType: c.Option.ContentType,
+			Payload:     c.Option.Payload,
+			Alg:         c.Credential.Alg,
+		}
+		c.Option.Hash = ph.String()
+	}
+
 	m := &Mac{
 		Type:       Header,
 		Credential: c.Credential,
@@ -23,15 +32,6 @@ func (c *Client) Header(uri string, method string) (string, error) {
 	mac, err := m.String()
 	if err != nil {
 		return "", err
-	}
-
-	if c.Option.Hash == "" && (method == "POST" || method == "PUT") {
-		ph := &PayloadHash{
-			ContentType: c.Option.ContentType,
-			Payload:     c.Option.Payload,
-			Alg:         c.Credential.Alg,
-		}
-		c.Option.Hash = ph.String()
 	}
 
 	header := "Hawk " +

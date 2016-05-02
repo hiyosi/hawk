@@ -26,7 +26,7 @@ func TestClient_Header(t *testing.T) {
 	}
 
 	url1 := "https://example.com/test/hawk"
-	act1, err := c1.Header(url1, "GET")
+	act1, err := c1.Header("GET", url1)
 	if err != nil {
 		t.Error("got an error,", err.Error())
 	}
@@ -64,7 +64,7 @@ func TestClient_Header(t *testing.T) {
 	}
 
 	url2 := "http://example.net/somewhere/over/the/rainbow"
-	act2, err := c2.Header(url2, "POST")
+	act2, err := c2.Header("POST", url2)
 	if err != nil {
 		t.Error("got an error,", err.Error())
 	}
@@ -107,7 +107,7 @@ func TestClient_Header(t *testing.T) {
 	}
 
 	url3 := "http://example.net/somewhere/over/the/rainbow"
-	act3, err := c3.Header(url3, "POST")
+	act3, err := c3.Header("POST", url3)
 	if err != nil {
 		t.Error("got an error,", err.Error())
 	}
