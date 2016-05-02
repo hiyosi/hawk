@@ -148,10 +148,38 @@ func TestClient_Authenticate(t *testing.T) {
 
 	ts := int64(1453070933)
 
+	// GET
+	var mockedHttpServer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Server-Authorization", `Hawk mac="eQVGuMTYgG3ePysLXDnYMSECjvhdGyZX5VPIunNUyJ8=", ext="response-specific"`)
+	})
+	s := httptest.NewServer(mockedHttpServer)
+	defer s.Close()
+	r, _ := http.Get(s.URL)
+	r.Request.URL = mockedURL
+
+	c := &Client{
+		Credential: &Credential{
+			ID:  "123456",
+			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
+			Alg: SHA256,
+		},
+		Option: &Option{
+			TimeStamp: ts,
+			Nonce:     "3hOHpR",
+			Ext:       "some-app-data",
+		},
+	}
+
+	act, _ := c.Authenticate(r)
+	if act != true {
+		t.Error("failed to authenticate server response.")
+	}
+
+	// POST
 	var mockedHttpServer1 = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("Server-Authorization", `Hawk mac="odsVGUq0rCoITaiNagW22REIpqkwP9zt5FyqqOW9Zj8=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`)
-		fmt.Fprintf(w, "some reply\n")
+		fmt.Fprintf(w, "\n")
 	})
 	s1 := httptest.NewServer(mockedHttpServer1)
 	defer s1.Close()
