@@ -42,6 +42,7 @@ type PayloadHash struct {
 	Alg         Alg
 }
 
+// String returns a base64 encoded message authentication code.
 func (m *Mac) String() (string, error) {
 	digest, err := m.digest()
 	return base64.StdEncoding.EncodeToString(digest), err
@@ -64,6 +65,7 @@ func (m *Mac) normalized() (string, error) {
 	return normalized(m.Type, m.Uri, m.Method, m.HostPort, m.Option)
 }
 
+// String returns a base64 encoded message authentication code for timestamp
 func (tm *TsMac) String() string {
 	digest := tm.digest()
 	return base64.StdEncoding.EncodeToString(digest)
@@ -79,6 +81,7 @@ func (tm *TsMac) digest() []byte {
 	return mac.Sum(nil)
 }
 
+// String returns a base64 encoded hash value of payload
 func (h *PayloadHash) String() string {
 	hash := h.hash()
 	return base64.StdEncoding.EncodeToString(hash)

@@ -15,6 +15,7 @@ type BewitConfig struct {
 
 // TODO: Implement the SNTP for time sync management
 
+// GetBewit builds a value of bewit parameter.
 func (b *BewitConfig) GetBewit(url string, clock Clock) string {
 	if url == "" {
 		return ""

@@ -1,3 +1,4 @@
+// Package hawk provides support for Hawk authentication.
 package hawk
 
 import "time"
@@ -27,7 +28,9 @@ const (
 	SHA512
 )
 
+// Clock returns a time.
 type Clock interface {
+	// Now returns the current unix-time obtained by adding a offset value.
 	Now(offset time.Duration) int64
 }
 type LocalClock struct{}

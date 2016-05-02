@@ -11,6 +11,7 @@ type Client struct {
 	Option     *Option
 }
 
+//  Header builds a value to be set in the Authorization header.
 func (c *Client) Header(method, uri string) (string, error) {
 	if c.Option.Hash == "" && (method == "POST" || method == "PUT") {
 		ph := &PayloadHash{
@@ -57,6 +58,8 @@ func (c *Client) Header(method, uri string) (string, error) {
 	return header, nil
 }
 
+// Authenticate authenticate the Hawk server response from the HTTP response.
+// Successful case returns true.
 func (c *Client) Authenticate(res *http.Response) (bool, error) {
 	artifacts := *c.Option
 

@@ -34,6 +34,8 @@ type NonceValidator interface {
 	Validate(key, nonce string, ts int64) bool
 }
 
+// Authenticate authenticate the Hawk request from the HTTP request.
+// Successful case returns credential information about requested user.
 func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 	// 0 is treated as empty. set to default value.
 	if s.TimeStampSkew == 0 {
@@ -127,6 +129,8 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 	return cred, nil
 }
 
+// AuthenticateBewit authenticate the Hawk bewit request from the HTTP request.
+// Successful case returns credential information about requested user.
 func (s *Server) AuthenticateBewit(req *http.Request) (*Credential, error) {
 	clock := getClock(s.AuthOption)
 	now := clock.Now(s.LocaltimeOffset)
@@ -222,6 +226,7 @@ func (s *Server) AuthenticateBewit(req *http.Request) (*Credential, error) {
 	return cred, nil
 }
 
+// Header builds a value to be set in the Server-Authorization header.
 func (s *Server) Header(req *http.Request, cred *Credential, opt *Option) (string, error) {
 	authzHeader := req.Header.Get("Authorization")
 	authzAttributes := parseHawkHeader(authzHeader)
