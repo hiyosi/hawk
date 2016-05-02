@@ -548,4 +548,49 @@ func TestServer_Header(t *testing.T) {
 	if act != expect {
 		t.Error("unexpected header response, actual=" + act)
 	}
+
+	// CustomHostHeader specified
+	r1, _ := http.NewRequest("POST", "http://www.example.com/resource/4?filter=a", nil)
+	r1.Header.Set("Authorization", `Hawk mac="dvIvMThwi28J61Jc3P0ryAhuKpanU63GXdx6hkmQkJA=", ts="1398546787", nonce="xUwusx", ext="some-app-data", hash="nJjkVtBE5Y/Bk38Aiokwn0jiJxt/0S2WRSUwWLCf5xk="`)
+	r1.Header.Set("Content-Type", "text/plain")
+	r1.Header.Set("X-CUSTOM-HOST", "example.com:8080")
+
+	s1 := &Server{
+		CredentialGetter: credentialStore,
+		AuthOption: &AuthOption{
+			CustomHostNameHeader: "X-CUSTOM-HOST",
+		},
+	}
+
+	act1, err := s1.Header(r1, cred, option)
+	expect1 := `Hawk mac="n14wVJK4cOxAytPUMc5bPezQzuJGl5n7MYXhFQgEKsE=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`
+
+	if err != nil {
+		t.Error("unexpected error, ", err)
+	}
+	if act1 != expect1 {
+		t.Error("unexpected header response, actual=" + act1)
+	}
+
+	// CustomeHostPort specified
+	r2, _ := http.NewRequest("POST", "http://www.example.com/resource/4?filter=a", nil)
+	r2.Header.Set("Authorization", `Hawk mac="dvIvMThwi28J61Jc3P0ryAhuKpanU63GXdx6hkmQkJA=", ts="1398546787", nonce="xUwusx", ext="some-app-data", hash="nJjkVtBE5Y/Bk38Aiokwn0jiJxt/0S2WRSUwWLCf5xk="`)
+	r2.Header.Set("Content-Type", "text/plain")
+
+	s2 := &Server{
+		CredentialGetter: credentialStore,
+		AuthOption: &AuthOption{
+			CustomHostPort: "example.com:8080",
+		},
+	}
+
+	act2, err := s2.Header(r2, cred, option)
+	expect2 := `Hawk mac="n14wVJK4cOxAytPUMc5bPezQzuJGl5n7MYXhFQgEKsE=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`
+
+	if err != nil {
+		t.Error("unexpected error, ", err)
+	}
+	if act2 != expect2 {
+		t.Error("unexpected header response, actual=" + act2)
+	}
 }
