@@ -170,7 +170,7 @@ func (s *Server) AuthenticateBewit(req *http.Request) (*Credential, error) {
 		return nil, errors.New("Invalid ts value.")
 	}
 
-	if (ts) <= (now) {
+	if ts <= now {
 		return nil, errors.New("Access expired.")
 	}
 

@@ -311,6 +311,45 @@ func TestServer_AuthenticateBewit(t *testing.T) {
 	if act == nil {
 		t.Errorf("returned nil.")
 	}
+
+	// custome HostHeader specified
+	rawPath1 := "/resource/4?a=1&b=2&bewit=MTIzNDU2XDQ1MTE0ODQ2MjFcMzFjMmNkbUJFd1NJRVZDOVkva1NFb2c3d3YrdEVNWjZ3RXNmOGNHU2FXQT1cc29tZS1hcHAtZGF0YQ"
+	r1, _ := http.NewRequest("GET", "http://www.example.com"+rawPath1, nil)
+	r1.URL.RawPath = rawPath1
+	r1.Header.Set("X-CUSTOM-HOST", "example.com:8080")
+
+	s1 := &Server{
+		CredentialGetter: credentialStore,
+		AuthOption: &AuthOption{
+			CustomHostNameHeader: "X-CUSTOM-HOST",
+		},
+	}
+	act1, err := s1.AuthenticateBewit(r1)
+	if err != nil {
+		t.Errorf("error, %s", err)
+	}
+	if act1 == nil {
+		t.Errorf("returned nil.")
+	}
+
+	// custom HostPort specified
+	rawPath2 := "/resource/4?a=1&b=2&bewit=MTIzNDU2XDQ1MTE0ODQ2MjFcMzFjMmNkbUJFd1NJRVZDOVkva1NFb2c3d3YrdEVNWjZ3RXNmOGNHU2FXQT1cc29tZS1hcHAtZGF0YQ"
+	r2, _ := http.NewRequest("GET", "http://www.example.com"+rawPath2, nil)
+	r2.URL.RawPath = rawPath2
+
+	s2 := &Server{
+		CredentialGetter: credentialStore,
+		AuthOption: &AuthOption{
+			CustomHostPort: "example.com:8080",
+		},
+	}
+	act2, err := s2.AuthenticateBewit(r2)
+	if err != nil {
+		t.Errorf("error, %s", err)
+	}
+	if act2 == nil {
+		t.Errorf("returned nil.")
+	}
 }
 
 func TestServer_AuthenticateBewit_Fail(t *testing.T) {
@@ -335,7 +374,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 		t.Error("expected got an error, but actual is nil")
 	}
 	if act1 != nil {
-		t.Errorf("returned nil.")
+		t.Errorf("expected nil but, returned not nil.")
 	}
 
 	// invalid method
@@ -351,7 +390,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 		t.Error("expected got an error, but actual is nil")
 	}
 	if act2 != nil {
-		t.Errorf("returned nil.")
+		t.Errorf("expected nil but, returned not nil.")
 	}
 
 	// Authorization Header specified
@@ -368,7 +407,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 		t.Error("expected got an error, but actual is nil")
 	}
 	if act3 != nil {
-		t.Errorf("returned nil.")
+		t.Errorf("expected nil but, returned not nil.")
 	}
 
 	// no url-safe encoded param
@@ -384,7 +423,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 		t.Error("expected got an error, but actual is nil")
 	}
 	if act4 != nil {
-		t.Errorf("returned nil.")
+		t.Errorf("expected nil but, returned not nil.")
 	}
 
 	// invalid bewit param
@@ -400,7 +439,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 		t.Error("expected got an error, but actual is nil")
 	}
 	if act5 != nil {
-		t.Errorf("returned nil.")
+		t.Errorf("expected nil but, returned not nil.")
 	}
 
 	// missing bewit value
@@ -416,6 +455,58 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 		t.Error("expected got an error, but actual is nil")
 	}
 	if act6 != nil {
-		t.Errorf("returned nil.")
+		t.Errorf("expected nil but, returned not nil.")
+	}
+
+	// invalid timestamp
+	rawPath7 := "/resource/4?a=1&b=2&bewit=MTIzNDU2XDEzNjU3MTE0NThcRnpKUmllbWFaNGI2WHU4eVAxeHdMcGZPdE0rd2gyMitHUnVCbEpmaFdQbz1cc29tZS1hcHAtZGF0YQ"
+	r7, _ := http.NewRequest("GET", "http://example.com:8080"+rawPath7, nil)
+	r7.URL.RawPath = rawPath7
+
+	s7 := &Server{
+		CredentialGetter: credentialStore,
+	}
+	act7, err := s7.AuthenticateBewit(r7)
+	if err == nil {
+		t.Error("expected got an error, but actual is nil")
+	}
+	if act7 != nil {
+		t.Errorf("expected nil but, returned not nil.")
+	}
+
+	// failed to get credential
+	credentialStore8 := &testCredentialStore{
+		ID: id,
+	}
+
+	rawPath8 := "/resource/4?a=1&b=2&bewit=MTIzNDU2XDEzNjU3MTE0NThcRnpKUmllbWFaNGI2WHU4eVAxeHdMcGZPdE0rd2gyMitHUnVCbEpmaFdQbz1cc29tZS1hcHAtZGF0YQ"
+	r8, _ := http.NewRequest("GET", "http://example.com:8080"+rawPath8, nil)
+	r8.URL.RawPath = rawPath8
+
+	s8 := &Server{
+		CredentialGetter: credentialStore8,
+	}
+	act8, err := s8.AuthenticateBewit(r8)
+	if err == nil {
+		t.Error("expected got an error, but actual is nil")
+	}
+	if act8 != nil {
+		t.Errorf("expected nil but, returned not nil.")
+	}
+
+	// invalid mac
+	rawPath9 := "/resource/4?a=1&b=2&bewit=MTIzNDU2XDQ1MTE0ODQ2MjFcMzFjMmNkbUJFd1NJRVZDOVkva1NFb2c3d3YrdEVNWjZ3RXNmOGNHU2FXQT1cc29tZS1hcHAtZGF0YQ"
+	r9, _ := http.NewRequest("GET", "http://www.example.com"+rawPath9, nil)
+	r9.URL.RawPath = rawPath9
+
+	s9 := &Server{
+		CredentialGetter: credentialStore,
+	}
+	act9, err := s9.AuthenticateBewit(r9)
+	if err == nil {
+		t.Error("expected got an error, but actual is nil")
+	}
+	if act9 != nil {
+		t.Errorf("expected nil but, returned not nil.")
 	}
 }
