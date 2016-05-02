@@ -16,6 +16,10 @@ func Nonce(n int) (string, error) {
 func parseHawkHeader(headerVal string) map[string]string {
 	attrs := make(map[string]string)
 
+	if headerVal == "" {
+		return attrs
+	}
+
 	hv := strings.Split(strings.Split(headerVal, "Hawk ")[1], ", ")
 	//FIXME: validate header (length, structure, scheme)
 	//FIXME: validate duplication, unknown-key, etc ...
