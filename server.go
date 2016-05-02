@@ -54,7 +54,7 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 	artifacts := &Option{
 		TimeStamp: ts,
 		Nonce:     authAttributes["nonce"],
-		Hash:      authAttributes["Hash"],
+		Hash:      authAttributes["hash"],
 		Ext:       authAttributes["ext"],
 		App:       authAttributes["app"],
 		Dlg:       authAttributes["dlg"],
@@ -99,7 +99,7 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 		return nil, errors.New("Bad MAC")
 	}
 
-	if s.Payload != "" {
+	if req.Method == "POST" || req.Method == "PUT" {
 		if artifacts.Hash == "" {
 			return nil, errors.New("Missing required payload hash.")
 		}
@@ -119,8 +119,7 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 			return nil, errors.New("Invalid nonce.")
 		}
 	}
-
-	if math.Abs(float64(artifacts.TimeStamp*1000)-float64(now)) > float64(s.TimeStampSkew*1000) {
+	if math.Abs(float64((artifacts.TimeStamp)-(now))) > s.TimeStampSkew.Seconds() {
 		//FIXME: logging timestamp
 		return nil, errors.New("Stale timestamp")
 	}
@@ -171,7 +170,7 @@ func (s *Server) AuthenticateBewit(req *http.Request) (*Credential, error) {
 		return nil, errors.New("Invalid ts value.")
 	}
 
-	if (ts * 1000) <= (now * 1000) {
+	if (ts) <= (now) {
 		return nil, errors.New("Access expired.")
 	}
 
