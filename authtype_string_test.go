@@ -17,4 +17,9 @@ func TestAuthType_String(t *testing.T) {
 	if t3.String() != "Bewit" {
 		t.Error("unexpected authtype string. expect=Bewit, actual=" + t3.String())
 	}
+
+	var t4 AuthType = 10
+	if t4.String() != "AuthType(10)" {
+		t.Error("unexpected authtype string. expect=AuthType(10), actual=" + t4.String())
+	}
 }
