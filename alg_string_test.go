@@ -8,7 +8,7 @@ func TestAlg_String(t *testing.T) {
 		t.Error("unexpected authtype string. expect=SHA256, actual=" + a1.String())
 	}
 
-	a2 := SHA256
+	a2 := SHA512
 	if a2.String() != "SHA512" {
 		t.Error("unexpected authtype string. expect=SHA256, actual=" + a2.String())
 	}
