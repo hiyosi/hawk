@@ -205,6 +205,17 @@ func TestClient_Authenticate(t *testing.T) {
 	if act1 != true {
 		t.Error("failed to authenticate server response.")
 	}
+}
+
+func TestClient_Authenticate_Fail(t *testing.T) {
+	mockedURL := &url.URL{
+		Scheme:   "http",
+		Host:     "example.com:8080",
+		Path:     "/resource/4",
+		RawQuery: "filter=a",
+	}
+
+	ts := int64(1453070933)
 
 	// calculate mac with different credential.key
 	var mockedHttpServer2 = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -234,7 +245,7 @@ func TestClient_Authenticate(t *testing.T) {
 
 	act2, _ := c2.Authenticate(r2)
 	if act2 != false {
-		t.Error("failed to authenticate server response.")
+		t.Error("expected authenticate failed, but actual is successful.")
 	}
 
 	// invalid hash value specified
@@ -265,6 +276,6 @@ func TestClient_Authenticate(t *testing.T) {
 
 	act3, _ := c3.Authenticate(r3)
 	if act3 != false {
-		t.Error("failed to authenticate server response.")
+		t.Error("expected authenticate failed, but actual is successful.")
 	}
 }
