@@ -479,7 +479,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 		ID: id,
 	}
 
-	rawPath8 := "/resource/4?a=1&b=2&bewit=MTIzNDU2XDEzNjU3MTE0NThcRnpKUmllbWFaNGI2WHU4eVAxeHdMcGZPdE0rd2gyMitHUnVCbEpmaFdQbz1cc29tZS1hcHAtZGF0YQ"
+	rawPath8 := "/resource/4?a=1&b=2&bewit=MTIzNDU2XDQ1MTE0ODQ2MjFcMzFjMmNkbUJFd1NJRVZDOVkva1NFb2c3d3YrdEVNWjZ3RXNmOGNHU2FXQT1cc29tZS1hcHAtZGF0YQ"
 	r8, _ := http.NewRequest("GET", "http://example.com:8080"+rawPath8, nil)
 	r8.URL.RawPath = rawPath8
 
