@@ -189,63 +189,6 @@ func TestServer_Authenticate(t *testing.T) {
 			t.Error("Invalid return value")
 		}
 	}
-
-	// NonceValidator return error
-	c5 := &Client{
-		Credential: &Credential{
-			ID:  credentialStore.ID,
-			Key: credentialStore.Key,
-			Alg: credentialStore.Alg,
-		},
-		Option: &Option{
-			TimeStamp: time.Now().Unix(),
-			Nonce:     "3hOHpR",
-			Ext:       "some-app-data",
-		},
-	}
-
-	h5, _ := c5.Header("GET", "http://example.com:8080/resource/1?b=1&a=2")
-
-	r5, _ := http.NewRequest("GET", "http://example.com:8080/resource/1?b=1&a=2", nil)
-	r5.Header.Set("Authorization", h5)
-
-	s5 := &Server{
-		CredentialGetter: credentialStore,
-		NonceValidator:   &errorNonceValidator{},
-	}
-
-	_, err = s5.Authenticate(r5)
-	if err == nil {
-		t.Error("expected return error, buto got nil")
-	}
-
-	// stale timestamp
-	c6 := &Client{
-		Credential: &Credential{
-			ID:  credentialStore.ID,
-			Key: credentialStore.Key,
-			Alg: credentialStore.Alg,
-		},
-		Option: &Option{
-			TimeStamp: int64(1253070933),
-			Nonce:     "3hOHpR",
-			Ext:       "some-app-data",
-		},
-	}
-
-	h6, _ := c6.Header("GET", "http://example.com:8080/resource/1?b=1&a=2")
-
-	r6, _ := http.NewRequest("GET", "http://example.com:8080/resource/1?b=1&a=2", nil)
-	r6.Header.Set("Authorization", h6)
-
-	s6 := &Server{
-		CredentialGetter: credentialStore,
-	}
-
-	_, err = s6.Authenticate(r6)
-	if err == nil {
-		t.Error("expected return error, buto got nil")
-	}
 }
 
 type errorNonceValidator struct{}
@@ -274,6 +217,75 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 	if err == nil {
 		t.Errorf("Not Returned error.")
 	}
+
+	// NonceValidator return error
+	c1 := &Client{
+		Credential: &Credential{
+			ID:  credentialStore.ID,
+			Key: credentialStore.Key,
+			Alg: credentialStore.Alg,
+		},
+		Option: &Option{
+			TimeStamp: time.Now().Unix(),
+			Nonce:     "3hOHpR",
+			Ext:       "some-app-data",
+		},
+	}
+
+	h1, _ := c1.Header("GET", "http://example.com:8080/resource/1?b=1&a=2")
+
+	r1, _ := http.NewRequest("GET", "http://example.com:8080/resource/1?b=1&a=2", nil)
+	r1.Header.Set("Authorization", h1)
+
+	s1 := &Server{
+		CredentialGetter: credentialStore,
+		NonceValidator:   &errorNonceValidator{},
+	}
+
+	_, err = s1.Authenticate(r1)
+	if err == nil {
+		t.Error("expected return error, buto got nil")
+	}
+
+	// stale timestamp
+	c2 := &Client{
+		Credential: &Credential{
+			ID:  credentialStore.ID,
+			Key: credentialStore.Key,
+			Alg: credentialStore.Alg,
+		},
+		Option: &Option{
+			TimeStamp: int64(1253070933),
+			Nonce:     "3hOHpR",
+			Ext:       "some-app-data",
+		},
+	}
+
+	h2, _ := c2.Header("GET", "http://example.com:8080/resource/1?b=1&a=2")
+
+	r2, _ := http.NewRequest("GET", "http://example.com:8080/resource/1?b=1&a=2", nil)
+	r2.Header.Set("Authorization", h2)
+
+	s2 := &Server{
+		CredentialGetter: credentialStore,
+	}
+
+	_, err = s2.Authenticate(r2)
+	if err == nil {
+		t.Error("expected return error, buto got nil")
+	}
+
+	// Authorization Header is null
+	r3, _ := http.NewRequest("GET", "http://example.com:8080/resource/1?b=1&a=2", nil)
+
+	s3 := &Server{
+		CredentialGetter: credentialStore,
+	}
+
+	_, err = s3.Authenticate(r3)
+	if err == nil {
+		t.Error("expected return error, buto got nil")
+	}
 }
 
 func TestServer_AuthenticateBewit(t *testing.T) {
@@ -298,6 +310,16 @@ func TestServer_AuthenticateBewit(t *testing.T) {
 	}
 	if act == nil {
 		t.Errorf("returned nil.")
+	}
+}
+
+func TestServer_AuthenticateBewit_Fail(t *testing.T) {
+	id := "123456"
+
+	credentialStore := &testCredentialStore{
+		ID:  id,
+		Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
+		Alg: SHA256,
 	}
 
 	// no bewit param specified
@@ -396,5 +418,4 @@ func TestServer_AuthenticateBewit(t *testing.T) {
 	if act6 != nil {
 		t.Errorf("returned nil.")
 	}
-
 }
