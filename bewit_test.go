@@ -30,6 +30,20 @@ func TestBewitConfig_GetBewit(t *testing.T) {
 	if actual1 != expect1 {
 		t.Errorf("invalid bewit: %s", actual1)
 	}
+}
+
+func TestBewitConfig_GetBewit2(t *testing.T) {
+	c := &Credential{
+		ID:  "123456",
+		Key: "2983d45yun89q",
+		Alg: SHA256,
+	}
+
+	b1 := &BewitConfig{
+		Credential: c,
+		Ttl:        24 * time.Hour * 365 * 100,
+		Ext:        "some-app-data",
+	}
 
 	// url parameter is null-string
 	actual2 := b1.GetBewit("", &stubbedClock{})
