@@ -292,13 +292,109 @@ func TestServer_AuthenticateBewit(t *testing.T) {
 	s := &Server{
 		CredentialGetter: credentialStore,
 	}
-
 	act, err := s.AuthenticateBewit(r)
 	if err != nil {
 		t.Errorf("error, %s", err)
 	}
-
 	if act == nil {
 		t.Errorf("returned nil.")
 	}
+
+	// no bewit param specified
+	rawPath1 := "/resource/4?a=1&b="
+	r1, _ := http.NewRequest("GET", "http://example.com:8080"+rawPath1, nil)
+	r1.URL.RawPath = rawPath1
+
+	s1 := &Server{
+		CredentialGetter: credentialStore,
+	}
+	act1, err := s1.AuthenticateBewit(r1)
+	if err == nil {
+		t.Error("expected got an error, but actual is nil")
+	}
+	if act1 != nil {
+		t.Errorf("returned nil.")
+	}
+
+	// invalid method
+	rawPath2 := "/resource/4?a=1&b=2&bewit=MTIzNDU2XDQ1MTE0ODQ2MjFcMzFjMmNkbUJFd1NJRVZDOVkva1NFb2c3d3YrdEVNWjZ3RXNmOGNHU2FXQT1cc29tZS1hcHAtZGF0YQ"
+	r2, _ := http.NewRequest("POST", "http://example.com:8080"+rawPath2, nil)
+	r2.URL.RawPath = rawPath2
+
+	s2 := &Server{
+		CredentialGetter: credentialStore,
+	}
+	act2, err := s2.AuthenticateBewit(r2)
+	if err == nil {
+		t.Error("expected got an error, but actual is nil")
+	}
+	if act2 != nil {
+		t.Errorf("returned nil.")
+	}
+
+	// Authorization Header specified
+	rawPath3 := "/resource/4?a=1&b=2&bewit=MTIzNDU2XDQ1MTE0ODQ2MjFcMzFjMmNkbUJFd1NJRVZDOVkva1NFb2c3d3YrdEVNWjZ3RXNmOGNHU2FXQT1cc29tZS1hcHAtZGF0YQ"
+	r3, _ := http.NewRequest("GET", "http://example.com:8080"+rawPath3, nil)
+	r3.URL.RawPath = rawPath3
+	r3.Header.Set("Authorization", "some-authorization-header-value")
+
+	s3 := &Server{
+		CredentialGetter: credentialStore,
+	}
+	act3, err := s3.AuthenticateBewit(r3)
+	if err == nil {
+		t.Error("expected got an error, but actual is nil")
+	}
+	if act3 != nil {
+		t.Errorf("returned nil.")
+	}
+
+	// no url-safe encoded param
+	rawPath4 := "/resource/4?a=1&b=2&bewit=aW52YWxpZC1iZXdpdC1zdHJpbmc="
+	r4, _ := http.NewRequest("GET", "http://example.com:8080"+rawPath4, nil)
+	r4.URL.RawPath = rawPath4
+
+	s4 := &Server{
+		CredentialGetter: credentialStore,
+	}
+	act4, err := s4.AuthenticateBewit(r4)
+	if err == nil {
+		t.Error("expected got an error, but actual is nil")
+	}
+	if act4 != nil {
+		t.Errorf("returned nil.")
+	}
+
+	// invalid bewit param
+	rawPath5 := "/resource/4?a=1&b=2&bewit=aW52YWxpZC1iZXdpdC1zdHJpbmc"
+	r5, _ := http.NewRequest("GET", "http://example.com:8080"+rawPath5, nil)
+	r5.URL.RawPath = rawPath5
+
+	s5 := &Server{
+		CredentialGetter: credentialStore,
+	}
+	act5, err := s5.AuthenticateBewit(r5)
+	if err == nil {
+		t.Error("expected got an error, but actual is nil")
+	}
+	if act5 != nil {
+		t.Errorf("returned nil.")
+	}
+
+	// missing bewit value
+	rawPath6 := "/resource/4?a=1&b=2&bewit=XFxc"
+	r6, _ := http.NewRequest("GET", "http://example.com:8080"+rawPath6, nil)
+	r6.URL.RawPath = rawPath6
+
+	s6 := &Server{
+		CredentialGetter: credentialStore,
+	}
+	act6, err := s6.AuthenticateBewit(r6)
+	if err == nil {
+		t.Error("expected got an error, but actual is nil")
+	}
+	if act6 != nil {
+		t.Errorf("returned nil.")
+	}
+
 }
