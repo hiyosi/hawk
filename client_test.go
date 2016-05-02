@@ -139,31 +139,26 @@ func TestClient_Header(t *testing.T) {
 }
 
 func TestClient_Authenticate(t *testing.T) {
-	var mockedHttpServer = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.Header().Set("Server-Authorization", `Hawk mac="odsVGUq0rCoITaiNagW22REIpqkwP9zt5FyqqOW9Zj8=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`)
-		fmt.Fprintf(w, "some reply\n")
-	})
-
-	s := httptest.NewServer(mockedHttpServer)
-	defer s.Close()
-
-	r, err := http.PostForm(s.URL, nil)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
 	mockedURL := &url.URL{
 		Scheme:   "http",
 		Host:     "example.com:8080",
 		Path:     "/resource/4",
 		RawQuery: "filter=a",
 	}
-	r.Request.URL = mockedURL
 
 	ts := int64(1453070933)
-	c := &Client{
+
+	var mockedHttpServer1 = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Server-Authorization", `Hawk mac="odsVGUq0rCoITaiNagW22REIpqkwP9zt5FyqqOW9Zj8=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`)
+		fmt.Fprintf(w, "some reply\n")
+	})
+	s1 := httptest.NewServer(mockedHttpServer1)
+	defer s1.Close()
+	r1, _ := http.PostForm(s1.URL, nil)
+	r1.Request.URL = mockedURL
+
+	c1 := &Client{
 		Credential: &Credential{
 			ID:  "123456",
 			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
@@ -175,13 +170,73 @@ func TestClient_Authenticate(t *testing.T) {
 			Ext:         "some-app-data",
 			ContentType: "text/plain",
 			Payload:     "some reply",
-			Hash:        "nJjkVtBE5Y/Bk38Aiokwn0jiJxt/0S2WRSUwWLCf5xk=",
 		},
 	}
 
-	act, _ := c.Authenticate(r)
+	act1, _ := c1.Authenticate(r1)
+	if act1 != true {
+		t.Error("failed to authenticate server response.")
+	}
 
-	if act != true {
+	// calculate mac with different credential.key
+	var mockedHttpServer2 = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Server-Authorization", `Hawk mac="odsVGUq0rCoITaiNagW22REIpqkwP9zt5FyqqOW9Zj8=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`)
+		fmt.Fprintf(w, "some reply\n")
+	})
+	s2 := httptest.NewServer(mockedHttpServer2)
+	defer s2.Close()
+	r2, _ := http.PostForm(s2.URL, nil)
+	r2.Request.URL = mockedURL
+
+	c2 := &Client{
+		Credential: &Credential{
+			ID:  "123456",
+			Key: "some-key",
+			Alg: SHA256,
+		},
+		Option: &Option{
+			TimeStamp:   ts,
+			Nonce:       "3hOHpR",
+			Ext:         "some-app-data",
+			ContentType: "text/plain",
+			Payload:     "some reply",
+		},
+	}
+
+	act2, _ := c2.Authenticate(r2)
+	if act2 != false {
+		t.Error("failed to authenticate server response.")
+	}
+
+	// invalid hash value specified
+	var mockedHttpServer3 = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Server-Authorization", `Hawk mac="odsVGUq0rCoITaiNagW22REIpqkwP9zt5FyqqOW9Zj8=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`)
+		fmt.Fprintf(w, "some reply\n")
+	})
+	s3 := httptest.NewServer(mockedHttpServer3)
+	defer s3.Close()
+	r3, _ := http.PostForm(s3.URL, nil)
+	r3.Request.URL = mockedURL
+
+	c3 := &Client{
+		Credential: &Credential{
+			ID:  "123456",
+			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
+			Alg: SHA256,
+		},
+		Option: &Option{
+			TimeStamp:   ts,
+			Nonce:       "3hOHpR",
+			Ext:         "some-app-data",
+			ContentType: "text/plain",
+			Payload:     "invalid some reply",
+		},
+	}
+
+	act3, _ := c3.Authenticate(r3)
+	if act3 != false {
 		t.Error("failed to authenticate server response.")
 	}
 }
