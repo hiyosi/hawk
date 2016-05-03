@@ -44,7 +44,8 @@ func hawkHandler(w http.ResponseWriter, r *http.Request) {
 		CredentialGetter: testCredStore,
 	}
 
-	result, err := s.Authenticate(r)
+    // authenticate client request
+	cred, err := s.Authenticate(r)
 	if err != nil {
 		w.Header().Set("WWW-Authenticate", "Hawk")
 		w.WriteHeader(401)
@@ -52,9 +53,19 @@ func hawkHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	opt := &hawk.Option{
+		TimeStamp: time.Now().Unix(),
+		Ext:       "response-specific",
+	}
+
+	// build server response header
+	h, _ := s.Header(r, cred, opt)
+
+	w.Header().Set("Server-Authorization", h)
 	w.WriteHeader(200)
-	w.Write([]byte("Hello, " + result.ID))
+	w.Write([]byte("Hello, " + cred.ID))
 }
+
 
 func main() {
 	http.HandleFunc("/resource", hawkHandler)
@@ -88,6 +99,7 @@ func main() {
 		},
 	}
 
+    // build request header
 	header, _ := c.Header("GET", "http://localhost:8080/resource")
 	req, _ := http.NewRequest("GET", "http://localhost:8080/resource", nil)
 	req.Header.Set("Authorization", header)
@@ -101,65 +113,18 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
-	if err == nil {
-		fmt.Println(string(b))
-	}
-
-	// Output:
-	// Hello, 123456
-}
-
-```
-***generate server response header (OPTIONAL)***
-
-```.go
-// server
-
-func hawkHandler(w http.ResponseWriter, r *http.Request) {
-	s := hawk.Server{
-		CredentialGetter: testCredStore,
-	}
-
-	cred, err := s.Authenticate(r)
-	if err != nil {
-		w.Header().Set("WWW-Authenticate", "Hawk")
-		w.WriteHeader(401)
-		fmt.Println(err)
-		return
-	}
-
-	opt := &hawk.Option{
-		TimeStamp: time.Now().Unix(),
-		Ext:       "response-specific",
-	}
-	h, _ := s.Header(r, cred, opt)
-
-	w.Header().Set("Server-Authorization", h)
-	w.WriteHeader(200)
-	w.Write([]byte("Hello, " + cred.ID))
-}
-```
-
-***server response authentication (OPTIONAL)***
-
-```.go
-/// client
-
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer resp.Body.Close()
-
+    // authenticate server response.
 	result, err := c.Authenticate(resp)
 	if err != nil {
 		fmt.Println("Server Authentication Failure")
 	}
 	fmt.Println("Server Authentication: ", result)
-	// Output:
-	// Server Authentication: true
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err == nil {
+		fmt.Println(string(b))
+	}
+}
 
 ```
 
