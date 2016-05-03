@@ -78,7 +78,7 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 		return nil, errors.New("Invalid Credential.")
 	}
 
-	var host string
+	host := req.Host
 	if s.AuthOption != nil {
 		// set to custom host(and port) value
 		if s.AuthOption.CustomHostNameHeader != "" {
