@@ -108,7 +108,7 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 		return nil, errors.New("Bad MAC")
 	}
 
-	if req.Method == "POST" || req.Method == "PUT" {
+	if s.Payload != "" {
 		if artifacts.Hash == "" {
 			return nil, errors.New("Missing required payload hash.")
 		}
@@ -238,7 +238,7 @@ func (s *Server) Header(req *http.Request, cred *Credential, opt *Option) (strin
 	authzHeader := req.Header.Get("Authorization")
 	authzAttributes := parseHawkHeader(authzHeader)
 
-	if opt.Hash == "" && (req.Method == "POST" || req.Method == "PUT") {
+	if opt.Hash == "" && opt.ContentType != "" {
 		ph := &PayloadHash{
 			ContentType: opt.ContentType,
 			Payload:     opt.Payload,
@@ -260,7 +260,7 @@ func (s *Server) Header(req *http.Request, cred *Credential, opt *Option) (strin
 		Dlg:       authzAttributes["dlg"],
 	}
 
-	var host string
+	host := req.Host
 	if s.AuthOption != nil {
 		// set to custom host(and port) value
 		if s.AuthOption.CustomHostNameHeader != "" {

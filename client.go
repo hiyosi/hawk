@@ -13,7 +13,7 @@ type Client struct {
 
 //  Header builds a value to be set in the Authorization header.
 func (c *Client) Header(method, uri string) (string, error) {
-	if c.Option.Hash == "" && (method == "POST" || method == "PUT") {
+	if c.Option.Hash == "" && c.Option.Payload != "" && c.Option.ContentType != "" {
 		ph := &PayloadHash{
 			ContentType: c.Option.ContentType,
 			Payload:     c.Option.Payload,
@@ -90,7 +90,7 @@ func (c *Client) Authenticate(res *http.Response) (bool, error) {
 		return false, errors.New("Bad response mac")
 	}
 
-	if c.Option.Payload == "" && res.Request.Method != "POST" && res.Request.Method != "PUT" {
+	if c.Option.Payload == "" && c.Option.ContentType == "" {
 		return true, nil
 	}
 
