@@ -548,6 +548,23 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 	if act9 != nil {
 		t.Errorf("expected nil but, returned not nil.")
 	}
+
+	// invalid ts value
+	//
+	rawPath10 := "/resource/4?a=1&b=2&bewit=MTIzNDU2XGFiY1wzMWMyY2RtQkV3U0lFVkM5WS9rU0VvZzd3dit0RU1aNndFc2Y4Y0dTYVdBPVxzb21lLWFwcC1kYXRh"
+	r10, _ := http.NewRequest("GET", "http://www.example.com"+rawPath10, nil)
+	r10.URL.RawPath = rawPath10
+
+	s10 := &Server{
+		CredentialGetter: credentialStore,
+	}
+	act10, err := s10.AuthenticateBewit(r10)
+	if err == nil {
+		t.Error("expected got an error, but actual is nil")
+	}
+	if act10 != nil {
+		t.Errorf("expected nil but, returned not nil.")
+	}
 }
 
 func TestServer_Header(t *testing.T) {
