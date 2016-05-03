@@ -50,6 +50,10 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 		return nil, errors.New("Authorization header not found.")
 	}
 	authzAttributes := parseHawkHeader(authzHeader)
+	if authzAttributes["id"] == "" || authzAttributes["ts"] == "" ||
+		authzAttributes["nonce"] == "" || authzAttributes["mac"] == "" {
+		return nil, errors.New("Missing attributes.")
+	}
 
 	ts, err := strconv.ParseInt(authzAttributes["ts"], 10, 64)
 	if err != nil {

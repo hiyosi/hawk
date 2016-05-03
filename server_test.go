@@ -282,10 +282,37 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 		CredentialGetter: credentialStore1,
 	}
 
-	act4, err := s4.Authenticate(r)
+	act4, err := s4.Authenticate(r3)
 	if act4 != nil {
 		t.Error("got an server autnentication result, expected=nil")
 	}
+
+	// invalid header value. case-1
+	r5, _ := http.NewRequest("GET", "http://example.com:8080/resource/1?b=1&a=2", nil)
+	r5.Header.Set("Authorization", "Hawk invalid-header")
+
+	s5 := &Server{
+		CredentialGetter: credentialStore,
+	}
+
+	act5, err := s5.Authenticate(r5)
+	if act5 != nil {
+		t.Error("got an server autnentication result, expected=nil")
+	}
+
+	// invalid header value. case-2
+	r6, _ := http.NewRequest("GET", "http://example.com:8080/resource/1?b=1&a=2", nil)
+	r6.Header.Set("Authorization", "invalid-header")
+
+	s6 := &Server{
+		CredentialGetter: credentialStore,
+	}
+
+	act6, err := s6.Authenticate(r6)
+	if act6 != nil {
+		t.Error("got an server autnentication result, expected=nil")
+	}
+
 }
 
 func TestServer_AuthenticateBewit(t *testing.T) {
