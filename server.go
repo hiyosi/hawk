@@ -196,7 +196,7 @@ func (s *Server) AuthenticateBewit(req *http.Request) (*Credential, error) {
 
 	removedBewitURL := removeBewitParam(req.URL)
 
-	var host string
+	host := req.Host
 	if s.AuthOption != nil {
 		// set to custom host(and port) value
 		if s.AuthOption.CustomHostNameHeader != "" {
