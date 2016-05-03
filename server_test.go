@@ -313,6 +313,18 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 		t.Error("got an server autnentication result, expected=nil")
 	}
 
+	// invalid ts value
+	r7, _ := http.NewRequest("GET", "http://example.com:8080/resource/1?b=1&a=2", nil)
+	r7.Header.Set("Authorization", `Hawk id="123456", ts="abc", nonce="xyz123", ext="some-ext-string", mac="nYSAgaU+v2eFRnY7z0x7/fAFlGmCNXqFo8Cl91q8sbI="`)
+
+	s7 := &Server{
+		CredentialGetter: credentialStore,
+	}
+
+	act7, err := s7.Authenticate(r7)
+	if act7 != nil {
+		t.Error("got an server autnentication result, expected=nil")
+	}
 }
 
 func TestServer_AuthenticateBewit(t *testing.T) {
