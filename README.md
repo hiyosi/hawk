@@ -5,6 +5,10 @@
 
 Package hawk provides support for Hawk authentication scheme.
 
+About Hawk: https://github.com/hueniverse/hawk
+
+see: https://github.com/hueniverse/hawk
+
 ## Installation
 
 ```
