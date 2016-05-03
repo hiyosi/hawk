@@ -15,7 +15,7 @@ go get github.com/hiyosi/hawk
 
 ## Example
 
-**simple client / server**
+***simple client / server***
 
 ```.go
 // sample server
@@ -111,7 +111,7 @@ func main() {
 }
 
 ```
-**generate server response header (OPTIONAL)**
+***generate server response header (OPTIONAL)***
 
 ```.go
 // server
