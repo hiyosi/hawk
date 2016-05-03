@@ -46,6 +46,9 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 	now := clock.Now(s.LocaltimeOffset)
 
 	authzHeader := req.Header.Get("Authorization")
+	if authzHeader == "" {
+		return nil, errors.New("Authorization header not found.")
+	}
 	authzAttributes := parseHawkHeader(authzHeader)
 
 	ts, err := strconv.ParseInt(authzAttributes["ts"], 10, 64)
