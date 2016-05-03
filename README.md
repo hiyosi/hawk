@@ -215,7 +215,7 @@ func hawkBewitHandler(w http.ResponseWriter, r *http.Request) {
 	s := hawk.Server{
 		CredentialGetter: testCredStore,
 		AuthOption: &hawk.AuthOption{
-			CustomHostNameHeader: "X-FORWARDED-HOST",
+			CustomHostNameHeader: "X-Forwarded-Host",
 		},
 	}
 ```
