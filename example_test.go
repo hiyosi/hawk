@@ -29,5 +29,5 @@ func ExampleClient_Head() {
 	fmt.Println(h)
 
 	// Output:
-	// Authorization: Hawk id="123456", ts="1462093200", nonce="xyz123", ext="some-ext-string", mac="3s9URfVAqBnJH4okl5YoSUB2r1dX1IAMcX66m3NdIcI="
+	// Hawk id="123456", ts="1462093200", nonce="xyz123", ext="some-ext-string", mac="nYSAgaU+v2eFRnY7z0x7/fAFlGmCNXqFo8Cl91q8sbI="
 }
