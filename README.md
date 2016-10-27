@@ -131,7 +131,7 @@ func main() {
 ```.go
 // server
 
-	b := NewBewitConfig(
+	b := hawk.NewBewitConfig(
 		&hawk.Credential{
 			ID:  "123456",
 			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
@@ -173,7 +173,7 @@ func hawkBewitHandler(w http.ResponseWriter, r *http.Request) {
 - get host-name by specified header name.
 
 ```.go
-    s := NewServer(testCredStore)
+    s := hawk.NewServer(testCredStore)
 	s.AuthOption = &hawk.AuthOption{
 	    CustomHostNameHeader: "X-Forwarded-Host",
 	}
