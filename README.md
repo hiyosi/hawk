@@ -40,9 +40,7 @@ func (c *credentialStore) GetCredential(id string) (*hawk.Credential, error) {
 var testCredStore = &credentialStore{}
 
 func hawkHandler(w http.ResponseWriter, r *http.Request) {
-	s := hawk.Server{
-		CredentialGetter: testCredStore,
-	}
+    s := hawk.NewServer(testCredStore)
 
     // authenticate client request
 	cred, err := s.Authenticate(r)
@@ -86,18 +84,18 @@ import (
 )
 
 func main() {
-	c := &hawk.Client{
-		Credential: &hawk.Credential{
+    c := hqwk.NewClient(
+		&hawk.Credential{
 			ID:  "123456",
 			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
 			Alg: hawk.SHA256,
 		},
-		Option: &hawk.Option{
+		&hawk.Option{
 			TimeStamp: time.Now().Unix(),
 			Nonce:     "3hOHpR",
 			Ext:       "some-app-data",
 		},
-	}
+	)
 
     // build request header
 	header, _ := c.Header("GET", "http://localhost:8080/resource")
@@ -133,15 +131,16 @@ func main() {
 ```.go
 // server
 
-	b := &hawk.BewitConfig{
-		Credential: &hawk.Credential{
+	b := hawk.NewBewitConfig(
+		&hawk.Credential{
 			ID:  "123456",
 			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
 			Alg: hawk.SHA256,
 		},
-		Ttl: 10 * time.Minute,
-		Ext: "some-app-data",
-	}
+		10 * time.Minute,
+	)
+
+
 	bewit := b.GetBewit("http://localhost:8080/temp/resource", nil)
 	fmt.Println(bewit)
 
@@ -153,10 +152,7 @@ func main() {
 // server
 
 func hawkBewitHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("bewit")
-	s := hawk.Server{
-		CredentialGetter: testCredStore,
-	}
+	s := hawk.NewServer(testCredStore)
 
 	cred, err := s.AuthenticateBewit(r)
 	if err != nil {
@@ -177,22 +173,18 @@ func hawkBewitHandler(w http.ResponseWriter, r *http.Request) {
 - get host-name by specified header name.
 
 ```.go
-	s := hawk.Server{
-		CredentialGetter: testCredStore,
-		AuthOption: &hawk.AuthOption{
-			CustomHostNameHeader: "X-Forwarded-Host",
-		},
+    s := hawk.NewServer(testCredStore)
+	s.AuthOption = &hawk.AuthOption{
+	    CustomHostNameHeader: "X-Forwarded-Host",
 	}
 ```
 
 - or specified hostname value yourself
 
 ```
-	s := hawk.Server{
-		CredentialGetter: testCredStore,
-		AuthOption: &hawk.AuthOption{
-			CustomHostPort: "b.example.com:8888",
-		},
+    s := hawk.NewServer(testCredStore)
+    s.AuthOption = &hawk.AuthOption{
+	    CustomHostPort: "b.example.com:8888",
 	}
 ```
 
