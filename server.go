@@ -12,7 +12,7 @@ import (
 )
 
 type Server struct {
-	CredentialGetter CredentialGetter
+	CredentialStore  CredentialStore
 	NonceValidator   NonceValidator
 	TimeStampSkew    time.Duration
 	LocaltimeOffset  time.Duration
@@ -26,12 +26,19 @@ type AuthOption struct {
 	CustomClock          Clock
 }
 
-type CredentialGetter interface {
+type CredentialStore interface {
 	GetCredential(id string) (*Credential, error)
 }
 
 type NonceValidator interface {
 	Validate(key, nonce string, ts int64) bool
+}
+
+// NewServer initializies a new Server.
+func NewServer(cs CredentialStore) *Server {
+	return &Server{
+		CredentialStore: cs,
+	}
 }
 
 // Authenticate authenticate the Hawk request from the HTTP request.
@@ -69,7 +76,7 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 		Dlg:       authzAttributes["dlg"],
 	}
 
-	cred, err := s.CredentialGetter.GetCredential(authzAttributes["id"])
+	cred, err := s.CredentialStore.GetCredential(authzAttributes["id"])
 	if err != nil {
 		// FIXME: logging error
 		return nil, errors.New("Failed to get Credential.")
@@ -185,7 +192,7 @@ func (s *Server) AuthenticateBewit(req *http.Request) (*Credential, error) {
 		return nil, errors.New("Access expired.")
 	}
 
-	cred, err := s.CredentialGetter.GetCredential(bewit["id"])
+	cred, err := s.CredentialStore.GetCredential(bewit["id"])
 	if err != nil {
 		// FIXME: logging error
 		return nil, errors.New("Failed to get Credential.")
