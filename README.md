@@ -3,7 +3,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/hiyosi/hawk/badge.svg?branch=master)](https://coveralls.io/github/hiyosi/hawk?branch=master)
 [![GoDoc](https://godoc.org/github.com/hiyosi/hawk?status.svg)](https://godoc.org/github.com/hiyosi/hawk)
 
-Package hawk provides support for Hawk authentication scheme.
+Package hawk supports to use Hawk authentication scheme.
 
 About Hawk: https://github.com/hueniverse/hawk
 
