@@ -99,6 +99,7 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 		}
 		if s.AuthOption.CustomURIHeader != "" {
 			uri = req.Header.Get(s.AuthOption.CustomURIHeader)
+			host = "" // make sure the host value is derived from the custom uri.
 		}
 	}
 
