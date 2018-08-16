@@ -1,15 +1,11 @@
 language: go
 go:
-- 1.5.4
-- 1.6.2
-- 1.7.1
+- 1.9
+- "1.10"
 - tip
 before_install:
 - go get github.com/mattn/goveralls
 - go get golang.org/x/tools/cmd/cover
 script:
 - go test -v
-- "$HOME/gopath/bin/goveralls -service=travis-ci"
-env:
-  global:
-  - secure: O8a3+hpky6YJYbPhrReaBnVMcKArXmUS14yVk8GNVzAQ52Uhyvw4nM0nlc+6KScs+0jdJ0GtWVx+QTUrkHBfRvHGmrYRbEMetzgLJPV/vazmqFnDXSZLVdmWYPiVmGquEMGj/6RrNIrkrp3Rdi2ORuDNfSDyhMtuOD7DLnfukmWVUo2Pm/tD+PxWE2Q46+Fg9NPdcVVEfI6c7P6g/2oAV+OFPpd+kgh4/XyLPL0ZHqfAYaJks9+9FivOhEGgjAI+nexI6wLIL8HfIBPYNeA1A81vAJGYRabvrYRZdprMQAddQEByls4YpveWQ/TUMZDDbeJ0eZuJQ5cgyXiUB3JZSdGKaJ3Rt5gDHlEpn3VEn/lQiDAPgxItZn/B3X/dTL9iSxKJ5NggMWIka+HmM2RuPqbqjgDl0n73apCvmlmHRbhtIgYDX6NVpmmoe5VSpbtDE0y4TRuj+zbPv5YyTjrhEn3PLJD5U3C9sc+gt4II6v1z38ToXv9LQLzfsq0akql/1RSGVXOR4LcZ8Lb4NtKrSmfzEi0EkrJOekuOLxBG+TkP8yYTtpkAVT/k3nyKjxrWeJXX2hT1RUatBG5A2utCYW3XbQz8l9oqw4/pMi2RaUUoTnB/WhQRYab/VMoujJ4YMydUSHJjl2D0p8TUUF2901tYIki22r42JYgdAAu2Y9c=
+- $GOPATH/bin/goveralls -service=travis-ci
