@@ -23,6 +23,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 	"github.com/hiyosi/hawk"
 	"net/http"
 )
@@ -40,9 +41,9 @@ func (c *credentialStore) GetCredential(id string) (*hawk.Credential, error) {
 var testCredStore = &credentialStore{}
 
 func hawkHandler(w http.ResponseWriter, r *http.Request) {
-    s := hawk.NewServer(testCredStore)
+	s := hawk.NewServer(testCredStore)
 
-    // authenticate client request
+	// authenticate client request
 	cred, err := s.Authenticate(r)
 	if err != nil {
 		w.Header().Set("WWW-Authenticate", "Hawk")
@@ -64,7 +65,6 @@ func hawkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello, " + cred.ID))
 }
 
-
 func main() {
 	http.HandleFunc("/resource", hawkHandler)
 	http.ListenAndServe(":8080", nil)
@@ -77,14 +77,14 @@ package main
 
 import (
 	"fmt"
+	"time"
 	"github.com/hiyosi/hawk"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 func main() {
-    c := hqwk.NewClient(
+	c := hawk.NewClient(
 		&hawk.Credential{
 			ID:  "123456",
 			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
@@ -97,7 +97,7 @@ func main() {
 		},
 	)
 
-    // build request header
+	// build request header
 	header, _ := c.Header("GET", "http://localhost:8080/resource")
 	req, _ := http.NewRequest("GET", "http://localhost:8080/resource", nil)
 	req.Header.Set("Authorization", header)
@@ -111,7 +111,7 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-    // authenticate server response.
+	// authenticate server response.
 	result, err := c.Authenticate(resp)
 	if err != nil {
 		fmt.Println("Server Authentication Failure")
@@ -123,7 +123,6 @@ func main() {
 		fmt.Println(string(b))
 	}
 }
-
 ```
 
 ***build bewit parameter***
