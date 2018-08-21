@@ -24,6 +24,7 @@ type AuthOption struct {
 	CustomHostNameHeader string
 	CustomHostPort       string
 	CustomClock          Clock
+	CustomURIHeader      string
 }
 
 type CredentialStore interface {
@@ -86,6 +87,7 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 	}
 
 	host := req.Host
+	uri := req.URL.String()
 	if s.AuthOption != nil {
 		// set to custom host(and port) value
 		if s.AuthOption.CustomHostNameHeader != "" {
@@ -95,12 +97,16 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 			// forces override a value.
 			host = s.AuthOption.CustomHostPort
 		}
+		if s.AuthOption.CustomURIHeader != "" {
+			uri = req.Header.Get(s.AuthOption.CustomURIHeader)
+			host = "" // make sure the host value is derived from the custom uri.
+		}
 	}
 
 	m := &Mac{
 		Type:       Header,
 		Credential: cred,
-		Uri:        req.URL.String(),
+		Uri:        uri,
 		Method:     req.Method,
 		HostPort:   host,
 		Option:     artifacts,
@@ -112,6 +118,7 @@ func (s *Server) Authenticate(req *http.Request) (*Credential, error) {
 	}
 
 	if !fixedTimeComparison(mac, authzAttributes["mac"]) {
+
 		return nil, errors.New("Bad MAC")
 	}
 
@@ -204,6 +211,7 @@ func (s *Server) AuthenticateBewit(req *http.Request) (*Credential, error) {
 	removedBewitURL := removeBewitParam(req.URL)
 
 	host := req.Host
+	uri := removedBewitURL.String()
 	if s.AuthOption != nil {
 		// set to custom host(and port) value
 		if s.AuthOption.CustomHostNameHeader != "" {
@@ -213,12 +221,17 @@ func (s *Server) AuthenticateBewit(req *http.Request) (*Credential, error) {
 			// forces override a value.
 			host = s.AuthOption.CustomHostPort
 		}
+		if s.AuthOption.CustomURIHeader != "" {
+			u, _ := url.Parse(req.Header.Get(s.AuthOption.CustomURIHeader))
+			tempUri := removeBewitParam(u)
+			uri = tempUri.String()
+		}
 	}
 
 	m := &Mac{
 		Type:       Bewit,
 		Credential: cred,
-		Uri:        removedBewitURL.String(),
+		Uri:        uri,
 		Method:     req.Method,
 		HostPort:   host,
 		Option: &Option{
@@ -268,6 +281,7 @@ func (s *Server) Header(req *http.Request, cred *Credential, opt *Option) (strin
 	}
 
 	host := req.Host
+	uri := req.URL.String()
 	if s.AuthOption != nil {
 		// set to custom host(and port) value
 		if s.AuthOption.CustomHostNameHeader != "" {
@@ -277,12 +291,15 @@ func (s *Server) Header(req *http.Request, cred *Credential, opt *Option) (strin
 			// forces override a value.
 			host = s.AuthOption.CustomHostPort
 		}
+		if s.AuthOption.CustomURIHeader != "" {
+			uri = req.Header.Get(s.AuthOption.CustomURIHeader)
+		}
 	}
 
 	m := &Mac{
 		Type:       Response,
 		Credential: cred,
-		Uri:        req.URL.String(),
+		Uri:        uri,
 		Method:     req.Method,
 		HostPort:   host,
 		Option:     artifacts,

@@ -169,6 +169,42 @@ func TestServer_Authenticate(t *testing.T) {
 			t.Error("Invalid return value")
 		}
 	}
+
+	// specified CustomURIHeader
+	c5 := &Client{
+		Credential: &Credential{
+			ID:  credentialStore.ID,
+			Key: credentialStore.Key,
+			Alg: credentialStore.Alg,
+		},
+		Option: &Option{
+			TimeStamp: time.Now().Unix(),
+			Nonce:     "3hOHpR",
+			Ext:       "some-app-data",
+		},
+	}
+
+	h5, _ := c5.Header("GET", "http://www.example.com/login/1?b=1&a=2")
+
+	r5, _ := http.NewRequest("GET", "http://www.example.com/resource/1?b=1&a=2", nil)
+	r5.Header.Set("Authorization", h5)
+	r5.Header.Set("X-CUSTOM-URI", "http://www.example.com/login/1?b=1&a=2")
+
+	s5 := NewServer(credentialStore)
+	s5.AuthOption = &AuthOption{
+		CustomURIHeader: "X-CUSTOM-URI",
+	}
+
+	act5, err := s5.Authenticate(r5)
+	if err != nil {
+		t.Errorf("return error, %s", err)
+	} else {
+		expect5, _ := credentialStore.GetCredential(id)
+		if *act5 != *expect5 {
+			t.Error("Invalid return value")
+		}
+	}
+
 }
 
 type errorNonceValidator struct{}
@@ -381,6 +417,27 @@ func TestServer_AuthenticateBewit(t *testing.T) {
 	if act2 == nil {
 		t.Errorf("returned nil.")
 	}
+
+	// CustomURIHeader specified
+	rawPath3 := "/resource/4?a=1&b=2&bewit=MTIzNDU2XDQ1MTE0ODQ2MjFcMWlIdEd5dG9VWGx0MnY5WnVPaHNkUHlqNmM4SVdQTkRXaWZMY3VibVpwYz1cc29tZS1hcHAtZGF0"
+	r3, _ := http.NewRequest("GET", "http://www.example.com"+rawPath3, nil)
+	r3.URL.RawPath = rawPath1
+	r3.Header.Set("X-CUSTOM-URI", "http://www.example.com/login/4?a=1&b=2&bewit=MTIzNDU2XDQ1MTE0ODQ2MjFcMWlIdEd5dG9VWGx0MnY5WnVPaHNkUHlqNmM4SVdQTkRXaWZMY3VibVpwYz1cc29tZS1hcHAtZGF0")
+
+	s3 := &Server{
+		CredentialStore: credentialStore,
+		AuthOption: &AuthOption{
+			CustomURIHeader: "X-CUSTOM-URI",
+		},
+	}
+	act3, err := s3.AuthenticateBewit(r3)
+	if err != nil {
+		t.Errorf("error, %s", err)
+	}
+	if act3 == nil {
+		t.Errorf("returned nil.")
+	}
+
 }
 
 func TestServer_AuthenticateBewit_Fail(t *testing.T) {
@@ -640,5 +697,27 @@ func TestServer_Header(t *testing.T) {
 	}
 	if act2 != expect2 {
 		t.Error("unexpected header response, actual=" + act2)
+	}
+
+	// CustomURIHeader specified
+	r3, _ := http.NewRequest("POST", "http://www.example.com/resource/4?filter=a", nil)
+	r3.Header.Set("Authorization", `Hawk mac="dvIvMThwi28J61Jc3P0ryAhuKpanU63GXdx6hkmQkJA=", ts="1398546787", nonce="xUwusx", ext="some-app-data", hash="nJjkVtBE5Y/Bk38Aiokwn0jiJxt/0S2WRSUwWLCf5xk="`)
+	r3.Header.Set("Content-Type", "text/plain")
+	r3.Header.Set("X-CUSTOM-URI", "http://www.example.com/login")
+	s3 := &Server{
+		CredentialStore: credentialStore,
+		AuthOption: &AuthOption{
+			CustomURIHeader: "X-CUSTOM-URI",
+		},
+	}
+
+	act3, err := s3.Header(r3, cred, option)
+	expect3 := `Hawk mac="Qk6Q+aVEGc9/EQp8pIEome/dUgurbXdZZzS6kYYlO98=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`
+
+	if err != nil {
+		t.Error("unexpected error, ", err)
+	}
+	if act3 != expect3 {
+		t.Error("unexpected header response, actual=" + act3)
 	}
 }
