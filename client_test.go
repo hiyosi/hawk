@@ -177,7 +177,7 @@ func TestClient_Authenticate(t *testing.T) {
 
 	// POST
 	var mockedHttpServer1 = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Header().Set("Server-Authorization", `Hawk mac="odsVGUq0rCoITaiNagW22REIpqkwP9zt5FyqqOW9Zj8=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`)
 		fmt.Fprintf(w, "\n")
 	})

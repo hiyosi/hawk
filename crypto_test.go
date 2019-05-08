@@ -152,4 +152,17 @@ func TestPayloadHash_String(t *testing.T) {
 	if actual != expect {
 		t.Error("invalid payload hash string.")
 	}
+
+	h2 := &PayloadHash{
+		ContentType: "text/plain; charset=utf-8",
+		Payload:     "Thank you for flying Hawk",
+		Alg:         SHA256,
+	}
+
+	// expected value shouldn't change from ContentType changing
+	actual2 := h2.String()
+
+	if actual2 != expect {
+		t.Error("invalid payload hash string when given ContentType with parameters.")
+	}
 }
