@@ -87,10 +87,14 @@ func (h *PayloadHash) String() string {
 	return base64.StdEncoding.EncodeToString(hash)
 }
 
+func sanitizeContentType(contentType string) string {
+	return strings.TrimSpace(strings.ToLower(strings.Split(contentType, ";")[0]))
+}
+
 func (h *PayloadHash) hash() []byte {
 	s := getHash(h.Alg)()
 
-	ns := "hawk." + strconv.Itoa(headerVersion) + ".payload" + "\n" + strings.ToLower(h.ContentType) + "\n" + h.Payload + "\n"
+	ns := "hawk." + strconv.Itoa(headerVersion) + ".payload" + "\n" + sanitizeContentType(h.ContentType) + "\n" + h.Payload + "\n"
 	s.Write([]byte(ns))
 
 	return s.Sum(nil)
