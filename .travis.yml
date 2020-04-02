@@ -1,8 +1,9 @@
 language: go
 go:
-- 1.9
-- "1.10"
-- tip
+- 1.12
+- 1.13
+- 1.14
+- master
 before_install:
 - go get github.com/mattn/goveralls
 - go get golang.org/x/tools/cmd/cover
