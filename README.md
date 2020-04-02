@@ -3,7 +3,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/hiyosi/hawk/badge.svg?branch=master)](https://coveralls.io/github/hiyosi/hawk?branch=master)
 [![GoDoc](https://godoc.org/github.com/hiyosi/hawk?status.svg)](https://godoc.org/github.com/hiyosi/hawk)
 
-Package hawk provides support for Hawk authentication scheme.
+Package hawk supports to use Hawk authentication scheme.
 
 About Hawk: https://github.com/hueniverse/hawk
 
@@ -23,6 +23,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 	"github.com/hiyosi/hawk"
 	"net/http"
 )
@@ -40,11 +41,9 @@ func (c *credentialStore) GetCredential(id string) (*hawk.Credential, error) {
 var testCredStore = &credentialStore{}
 
 func hawkHandler(w http.ResponseWriter, r *http.Request) {
-	s := hawk.Server{
-		CredentialGetter: testCredStore,
-	}
+	s := hawk.NewServer(testCredStore)
 
-    // authenticate client request
+	// authenticate client request
 	cred, err := s.Authenticate(r)
 	if err != nil {
 		w.Header().Set("WWW-Authenticate", "Hawk")
@@ -66,7 +65,6 @@ func hawkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello, " + cred.ID))
 }
 
-
 func main() {
 	http.HandleFunc("/resource", hawkHandler)
 	http.ListenAndServe(":8080", nil)
@@ -79,27 +77,27 @@ package main
 
 import (
 	"fmt"
+	"time"
 	"github.com/hiyosi/hawk"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 func main() {
-	c := &hawk.Client{
-		Credential: &hawk.Credential{
+	c := hawk.NewClient(
+		&hawk.Credential{
 			ID:  "123456",
 			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
 			Alg: hawk.SHA256,
 		},
-		Option: &hawk.Option{
+		&hawk.Option{
 			TimeStamp: time.Now().Unix(),
 			Nonce:     "3hOHpR",
 			Ext:       "some-app-data",
 		},
-	}
+	)
 
-    // build request header
+	// build request header
 	header, _ := c.Header("GET", "http://localhost:8080/resource")
 	req, _ := http.NewRequest("GET", "http://localhost:8080/resource", nil)
 	req.Header.Set("Authorization", header)
@@ -113,7 +111,7 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-    // authenticate server response.
+	// authenticate server response.
 	result, err := c.Authenticate(resp)
 	if err != nil {
 		fmt.Println("Server Authentication Failure")
@@ -125,7 +123,6 @@ func main() {
 		fmt.Println(string(b))
 	}
 }
-
 ```
 
 ***build bewit parameter***
@@ -133,15 +130,16 @@ func main() {
 ```.go
 // server
 
-	b := &hawk.BewitConfig{
-		Credential: &hawk.Credential{
+	b := hawk.NewBewitConfig(
+		&hawk.Credential{
 			ID:  "123456",
 			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
 			Alg: hawk.SHA256,
 		},
-		Ttl: 10 * time.Minute,
-		Ext: "some-app-data",
-	}
+		10 * time.Minute,
+	)
+
+
 	bewit := b.GetBewit("http://localhost:8080/temp/resource", nil)
 	fmt.Println(bewit)
 
@@ -153,10 +151,7 @@ func main() {
 // server
 
 func hawkBewitHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("bewit")
-	s := hawk.Server{
-		CredentialGetter: testCredStore,
-	}
+	s := hawk.NewServer(testCredStore)
 
 	cred, err := s.AuthenticateBewit(r)
 	if err != nil {
@@ -177,22 +172,18 @@ func hawkBewitHandler(w http.ResponseWriter, r *http.Request) {
 - get host-name by specified header name.
 
 ```.go
-	s := hawk.Server{
-		CredentialGetter: testCredStore,
-		AuthOption: &hawk.AuthOption{
-			CustomHostNameHeader: "X-Forwarded-Host",
-		},
+    s := hawk.NewServer(testCredStore)
+	s.AuthOption = &hawk.AuthOption{
+	    CustomHostNameHeader: "X-Forwarded-Host",
 	}
 ```
 
 - or specified hostname value yourself
 
 ```
-	s := hawk.Server{
-		CredentialGetter: testCredStore,
-		AuthOption: &hawk.AuthOption{
-			CustomHostPort: "b.example.com:8888",
-		},
+    s := hawk.NewServer(testCredStore)
+    s.AuthOption = &hawk.AuthOption{
+	    CustomHostPort: "b.example.com:8888",
 	}
 ```
 

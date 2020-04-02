@@ -11,6 +11,13 @@ type Client struct {
 	Option     *Option
 }
 
+func NewClient(c *Credential, o *Option) *Client {
+	return &Client{
+		Credential: c,
+		Option: o,
+	}
+}
+
 //  Header builds a value to be set in the Authorization header.
 func (c *Client) Header(method, uri string) (string, error) {
 	if c.Option.Hash == "" && c.Option.Payload != "" && c.Option.ContentType != "" {

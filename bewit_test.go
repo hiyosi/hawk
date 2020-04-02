@@ -18,11 +18,8 @@ func TestBewitConfig_GetBewit(t *testing.T) {
 		Alg: SHA256,
 	}
 
-	b1 := &BewitConfig{
-		Credential: c,
-		Ttl:        24 * time.Hour * 365 * 100,
-		Ext:        "some-app-data",
-	}
+	b1 := NewBewitConfig(c, (24 * time.Hour * 365 * 100))
+	b1.Ext = "some-app-data"
 
 	actual1 := b1.GetBewit("http://example.com/resource/4?a=1&b=2", &stubbedClock{})
 	expect1 := "MTIzNDU2XDQ1MTkzMTE0NThcYkkwanFlS1prUHE0V1hRMmkxK0NrQ2lOanZEc3BSVkNGajlmbElqMXphWT1cc29tZS1hcHAtZGF0YQ"
@@ -39,11 +36,8 @@ func TestBewitConfig_GetBewit2(t *testing.T) {
 		Alg: SHA256,
 	}
 
-	b1 := &BewitConfig{
-		Credential: c,
-		Ttl:        24 * time.Hour * 365 * 100,
-		Ext:        "some-app-data",
-	}
+	b1 := NewBewitConfig(c, (24 * time.Hour * 365 * 100))
+	b1.Ext = "some-app-data"
 
 	// url parameter is null-string
 	actual2 := b1.GetBewit("", &stubbedClock{})

@@ -48,9 +48,7 @@ func TestServer_Authenticate(t *testing.T) {
 	r, _ := http.NewRequest("GET", "http://example.com:8080/resource/1?b=1&a=2", nil)
 	r.Header.Set("Authorization", h)
 
-	s := &Server{
-		CredentialGetter: credentialStore,
-	}
+	s := NewServer(credentialStore)
 
 	act, err := s.Authenticate(r)
 	if err != nil {
@@ -82,11 +80,9 @@ func TestServer_Authenticate(t *testing.T) {
 	r2.Header.Set("Authorization", h2)
 	r2.Header.Set("X-CUSTOM-HOST", "example.com:8080")
 
-	s2 := &Server{
-		CredentialGetter: credentialStore,
-		AuthOption: &AuthOption{
-			CustomHostNameHeader: "X-CUSTOM-HOST",
-		},
+	s2 := NewServer(credentialStore)
+	s2.AuthOption = &AuthOption{
+		CustomHostNameHeader: "X-CUSTOM-HOST",
 	}
 
 	act2, err := s2.Authenticate(r2)
@@ -119,11 +115,9 @@ func TestServer_Authenticate(t *testing.T) {
 	r3.Header.Set("Authorization", h3)
 	r3.Header.Set("X-CUSTOM-HOST", "www.example.com:8888")
 
-	s3 := &Server{
-		CredentialGetter: credentialStore,
-		AuthOption: &AuthOption{
-			CustomHostPort: "example.com:8080",
-		},
+	s3 := NewServer(credentialStore)
+	s3.AuthOption = &AuthOption{
+		CustomHostPort: "example.com:8080",
 	}
 
 	act3, err := s3.Authenticate(r3)
@@ -163,10 +157,8 @@ func TestServer_Authenticate(t *testing.T) {
 	r4.Header.Set("Authorization", h4)
 	r4.Header.Set("Content-Type", "text/plain")
 
-	s4 := &Server{
-		CredentialGetter: credentialStore,
-		Payload:          "some reply",
-	}
+	s4 := NewServer(credentialStore)
+	s4.Payload = "some reply"
 
 	act4, err := s4.Authenticate(r4)
 	if err != nil {
@@ -177,6 +169,42 @@ func TestServer_Authenticate(t *testing.T) {
 			t.Error("Invalid return value")
 		}
 	}
+
+	// specified CustomURIHeader
+	c5 := &Client{
+		Credential: &Credential{
+			ID:  credentialStore.ID,
+			Key: credentialStore.Key,
+			Alg: credentialStore.Alg,
+		},
+		Option: &Option{
+			TimeStamp: time.Now().Unix(),
+			Nonce:     "3hOHpR",
+			Ext:       "some-app-data",
+		},
+	}
+
+	h5, _ := c5.Header("GET", "http://www.example.com/login/1?b=1&a=2")
+
+	r5, _ := http.NewRequest("GET", "http://www.example.com/resource/1?b=1&a=2", nil)
+	r5.Header.Set("Authorization", h5)
+	r5.Header.Set("X-CUSTOM-URI", "http://www.example.com/login/1?b=1&a=2")
+
+	s5 := NewServer(credentialStore)
+	s5.AuthOption = &AuthOption{
+		CustomURIHeader: "X-CUSTOM-URI",
+	}
+
+	act5, err := s5.Authenticate(r5)
+	if err != nil {
+		t.Errorf("return error, %s", err)
+	} else {
+		expect5, _ := credentialStore.GetCredential(id)
+		if *act5 != *expect5 {
+			t.Error("Invalid return value")
+		}
+	}
+
 }
 
 type errorNonceValidator struct{}
@@ -198,7 +226,7 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 	r.Header.Set("Authorization", `Hawk id="dh37fgj492je", ts="1234567890", nonce="3hOHpX", ext="some-app-data", mac="NEe0zcKYQtUWtstNnIO4e86RrpH1PdhMPz6X/TK8T5Q="`)
 
 	s := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 
 	_, err := s.Authenticate(r)
@@ -226,7 +254,7 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 	r1.Header.Set("Authorization", h1)
 
 	s1 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 		NonceValidator:   &errorNonceValidator{},
 	}
 
@@ -255,7 +283,7 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 	r2.Header.Set("Authorization", h2)
 
 	s2 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 
 	_, err = s2.Authenticate(r2)
@@ -267,7 +295,7 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 	r3, _ := http.NewRequest("GET", "http://example.com:8080/resource/1?b=1&a=2", nil)
 
 	s3 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 
 	_, err = s3.Authenticate(r3)
@@ -279,7 +307,7 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 	credentialStore1 := &testCredentialStore{}
 
 	s4 := &Server{
-		CredentialGetter: credentialStore1,
+		CredentialStore: credentialStore1,
 	}
 
 	act4, err := s4.Authenticate(r3)
@@ -292,7 +320,7 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 	r5.Header.Set("Authorization", "Hawk invalid-header")
 
 	s5 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 
 	act5, err := s5.Authenticate(r5)
@@ -305,7 +333,7 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 	r6.Header.Set("Authorization", "invalid-header")
 
 	s6 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 
 	act6, err := s6.Authenticate(r6)
@@ -318,7 +346,7 @@ func TestServer_Authenticate_Fail(t *testing.T) {
 	r7.Header.Set("Authorization", `Hawk id="123456", ts="abc", nonce="xyz123", ext="some-ext-string", mac="nYSAgaU+v2eFRnY7z0x7/fAFlGmCNXqFo8Cl91q8sbI="`)
 
 	s7 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 
 	act7, err := s7.Authenticate(r7)
@@ -341,7 +369,7 @@ func TestServer_AuthenticateBewit(t *testing.T) {
 	r.URL.RawPath = rawPath
 
 	s := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 	act, err := s.AuthenticateBewit(r)
 	if err != nil {
@@ -358,7 +386,7 @@ func TestServer_AuthenticateBewit(t *testing.T) {
 	r1.Header.Set("X-CUSTOM-HOST", "example.com:8080")
 
 	s1 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 		AuthOption: &AuthOption{
 			CustomHostNameHeader: "X-CUSTOM-HOST",
 		},
@@ -377,7 +405,7 @@ func TestServer_AuthenticateBewit(t *testing.T) {
 	r2.URL.RawPath = rawPath2
 
 	s2 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 		AuthOption: &AuthOption{
 			CustomHostPort: "example.com:8080",
 		},
@@ -389,6 +417,27 @@ func TestServer_AuthenticateBewit(t *testing.T) {
 	if act2 == nil {
 		t.Errorf("returned nil.")
 	}
+
+	// CustomURIHeader specified
+	rawPath3 := "/resource/4?a=1&b=2&bewit=MTIzNDU2XDQ1MTE0ODQ2MjFcMWlIdEd5dG9VWGx0MnY5WnVPaHNkUHlqNmM4SVdQTkRXaWZMY3VibVpwYz1cc29tZS1hcHAtZGF0"
+	r3, _ := http.NewRequest("GET", "http://www.example.com"+rawPath3, nil)
+	r3.URL.RawPath = rawPath1
+	r3.Header.Set("X-CUSTOM-URI", "http://www.example.com/login/4?a=1&b=2&bewit=MTIzNDU2XDQ1MTE0ODQ2MjFcMWlIdEd5dG9VWGx0MnY5WnVPaHNkUHlqNmM4SVdQTkRXaWZMY3VibVpwYz1cc29tZS1hcHAtZGF0")
+
+	s3 := &Server{
+		CredentialStore: credentialStore,
+		AuthOption: &AuthOption{
+			CustomURIHeader: "X-CUSTOM-URI",
+		},
+	}
+	act3, err := s3.AuthenticateBewit(r3)
+	if err != nil {
+		t.Errorf("error, %s", err)
+	}
+	if act3 == nil {
+		t.Errorf("returned nil.")
+	}
+
 }
 
 func TestServer_AuthenticateBewit_Fail(t *testing.T) {
@@ -406,7 +455,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 	r1.URL.RawPath = rawPath1
 
 	s1 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 	act1, err := s1.AuthenticateBewit(r1)
 	if err == nil {
@@ -422,7 +471,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 	r2.URL.RawPath = rawPath2
 
 	s2 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 	act2, err := s2.AuthenticateBewit(r2)
 	if err == nil {
@@ -439,7 +488,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 	r3.Header.Set("Authorization", "some-authorization-header-value")
 
 	s3 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 	act3, err := s3.AuthenticateBewit(r3)
 	if err == nil {
@@ -455,7 +504,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 	r4.URL.RawPath = rawPath4
 
 	s4 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 	act4, err := s4.AuthenticateBewit(r4)
 	if err == nil {
@@ -471,7 +520,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 	r5.URL.RawPath = rawPath5
 
 	s5 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 	act5, err := s5.AuthenticateBewit(r5)
 	if err == nil {
@@ -487,7 +536,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 	r6.URL.RawPath = rawPath6
 
 	s6 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 	act6, err := s6.AuthenticateBewit(r6)
 	if err == nil {
@@ -503,7 +552,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 	r7.URL.RawPath = rawPath7
 
 	s7 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 	act7, err := s7.AuthenticateBewit(r7)
 	if err == nil {
@@ -523,7 +572,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 	r8.URL.RawPath = rawPath8
 
 	s8 := &Server{
-		CredentialGetter: credentialStore8,
+		CredentialStore: credentialStore8,
 	}
 	act8, err := s8.AuthenticateBewit(r8)
 	if err == nil {
@@ -539,7 +588,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 	r9.URL.RawPath = rawPath9
 
 	s9 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 	act9, err := s9.AuthenticateBewit(r9)
 	if err == nil {
@@ -556,7 +605,7 @@ func TestServer_AuthenticateBewit_Fail(t *testing.T) {
 	r10.URL.RawPath = rawPath10
 
 	s10 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 	act10, err := s10.AuthenticateBewit(r10)
 	if err == nil {
@@ -588,7 +637,7 @@ func TestServer_Header(t *testing.T) {
 	}
 
 	s := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 	}
 
 	r, _ := http.NewRequest("POST", "http://example.com:8080/resource/4?filter=a", nil)
@@ -612,7 +661,7 @@ func TestServer_Header(t *testing.T) {
 	r1.Header.Set("X-CUSTOM-HOST", "example.com:8080")
 
 	s1 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 		AuthOption: &AuthOption{
 			CustomHostNameHeader: "X-CUSTOM-HOST",
 		},
@@ -634,7 +683,7 @@ func TestServer_Header(t *testing.T) {
 	r2.Header.Set("Content-Type", "text/plain")
 
 	s2 := &Server{
-		CredentialGetter: credentialStore,
+		CredentialStore: credentialStore,
 		AuthOption: &AuthOption{
 			CustomHostPort: "example.com:8080",
 		},
@@ -648,5 +697,27 @@ func TestServer_Header(t *testing.T) {
 	}
 	if act2 != expect2 {
 		t.Error("unexpected header response, actual=" + act2)
+	}
+
+	// CustomURIHeader specified
+	r3, _ := http.NewRequest("POST", "http://www.example.com/resource/4?filter=a", nil)
+	r3.Header.Set("Authorization", `Hawk mac="dvIvMThwi28J61Jc3P0ryAhuKpanU63GXdx6hkmQkJA=", ts="1398546787", nonce="xUwusx", ext="some-app-data", hash="nJjkVtBE5Y/Bk38Aiokwn0jiJxt/0S2WRSUwWLCf5xk="`)
+	r3.Header.Set("Content-Type", "text/plain")
+	r3.Header.Set("X-CUSTOM-URI", "http://www.example.com/login")
+	s3 := &Server{
+		CredentialStore: credentialStore,
+		AuthOption: &AuthOption{
+			CustomURIHeader: "X-CUSTOM-URI",
+		},
+	}
+
+	act3, err := s3.Header(r3, cred, option)
+	expect3 := `Hawk mac="Qk6Q+aVEGc9/EQp8pIEome/dUgurbXdZZzS6kYYlO98=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`
+
+	if err != nil {
+		t.Error("unexpected error, ", err)
+	}
+	if act3 != expect3 {
+		t.Error("unexpected header response, actual=" + act3)
 	}
 }

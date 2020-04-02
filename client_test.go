@@ -12,18 +12,18 @@ import (
 )
 
 func TestClient_Header(t *testing.T) {
-	c1 := &Client{
-		Credential: &Credential{
+	c1 := NewClient(
+		&Credential{
 			ID:  "test-id",
 			Key: "test-key",
 			Alg: SHA256,
 		},
-		Option: &Option{
+		&Option{
 			TimeStamp: time.Now().Unix(),
 			Nonce:     "xyz123",
 			Ext:       "sample-ext-string",
 		},
-	}
+	)
 
 	url1 := "https://example.com/test/hawk"
 	act1, err := c1.Header("GET", url1)
@@ -48,20 +48,20 @@ func TestClient_Header(t *testing.T) {
 	}
 
 	// specified payload
-	c2 := &Client{
-		Credential: &Credential{
+	c2 := NewClient(
+		&Credential{
 			ID:  "test-id",
 			Key: "test-key",
 			Alg: SHA256,
 		},
-		Option: &Option{
+		&Option{
 			TimeStamp:   time.Now().Unix(),
 			Nonce:       "xyz123",
 			Ext:         "sample-ext-string",
 			ContentType: "text/plain",
 			Payload:     "something to write about",
 		},
-	}
+	)
 
 	url2 := "http://example.net/somewhere/over/the/rainbow"
 	act2, err := c2.Header("POST", url2)
@@ -89,13 +89,13 @@ func TestClient_Header(t *testing.T) {
 	}
 
 	// specified app and dlg param
-	c3 := &Client{
-		Credential: &Credential{
+	c3 := NewClient(
+		&Credential{
 			ID:  "test-id",
 			Key: "test-key",
 			Alg: SHA256,
 		},
-		Option: &Option{
+		&Option{
 			TimeStamp:   time.Now().Unix(),
 			Nonce:       "xyz123",
 			Ext:         "sample-ext-string",
@@ -104,7 +104,7 @@ func TestClient_Header(t *testing.T) {
 			App:         "some-app-id",
 			Dlg:         "some-dlg",
 		},
-	}
+	)
 
 	url3 := "http://example.net/somewhere/over/the/rainbow"
 	act3, err := c3.Header("POST", url3)
@@ -157,18 +157,18 @@ func TestClient_Authenticate(t *testing.T) {
 	r, _ := http.Get(s.URL)
 	r.Request.URL = mockedURL
 
-	c := &Client{
-		Credential: &Credential{
+	c := NewClient(
+		&Credential{
 			ID:  "123456",
 			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
 			Alg: SHA256,
 		},
-		Option: &Option{
+		&Option{
 			TimeStamp: ts,
 			Nonce:     "3hOHpR",
 			Ext:       "some-app-data",
 		},
-	}
+	)
 
 	act, _ := c.Authenticate(r)
 	if act != true {
@@ -177,7 +177,7 @@ func TestClient_Authenticate(t *testing.T) {
 
 	// POST
 	var mockedHttpServer1 = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Header().Set("Server-Authorization", `Hawk mac="odsVGUq0rCoITaiNagW22REIpqkwP9zt5FyqqOW9Zj8=", hash="f9cDF/TDm7TkYRLnGwRMfeDzT6LixQVLvrIKhh0vgmM=", ext="response-specific"`)
 		fmt.Fprintf(w, "\n")
 	})
@@ -186,20 +186,20 @@ func TestClient_Authenticate(t *testing.T) {
 	r1, _ := http.PostForm(s1.URL, nil)
 	r1.Request.URL = mockedURL
 
-	c1 := &Client{
-		Credential: &Credential{
+	c1 := NewClient(
+		&Credential{
 			ID:  "123456",
 			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
 			Alg: SHA256,
 		},
-		Option: &Option{
+		&Option{
 			TimeStamp:   ts,
 			Nonce:       "3hOHpR",
 			Ext:         "some-app-data",
 			ContentType: "text/plain",
 			Payload:     "some reply",
 		},
-	}
+	)
 
 	act1, _ := c1.Authenticate(r1)
 	if act1 != true {
@@ -228,20 +228,20 @@ func TestClient_Authenticate_Fail(t *testing.T) {
 	r2, _ := http.PostForm(s2.URL, nil)
 	r2.Request.URL = mockedURL
 
-	c2 := &Client{
-		Credential: &Credential{
+	c2 := NewClient(
+		&Credential{
 			ID:  "123456",
 			Key: "some-key",
 			Alg: SHA256,
 		},
-		Option: &Option{
+		&Option{
 			TimeStamp:   ts,
 			Nonce:       "3hOHpR",
 			Ext:         "some-app-data",
 			ContentType: "text/plain",
 			Payload:     "some reply",
 		},
-	}
+	)
 
 	act2, _ := c2.Authenticate(r2)
 	if act2 != false {
@@ -259,20 +259,20 @@ func TestClient_Authenticate_Fail(t *testing.T) {
 	r3, _ := http.PostForm(s3.URL, nil)
 	r3.Request.URL = mockedURL
 
-	c3 := &Client{
-		Credential: &Credential{
+	c3 := NewClient(
+		&Credential{
 			ID:  "123456",
 			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
 			Alg: SHA256,
 		},
-		Option: &Option{
+		&Option{
 			TimeStamp:   ts,
 			Nonce:       "3hOHpR",
 			Ext:         "some-app-data",
 			ContentType: "text/plain",
 			Payload:     "invalid some reply",
 		},
-	}
+	)
 
 	act3, _ := c3.Authenticate(r3)
 	if act3 != false {

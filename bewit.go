@@ -13,6 +13,13 @@ type BewitConfig struct {
 	LocalTimeOffset time.Duration
 }
 
+func NewBewitConfig(c *Credential, ttl time.Duration) *BewitConfig {
+	return &BewitConfig{
+		Credential: c,
+		Ttl: ttl,
+	}
+}
+
 // TODO: Implement the SNTP for time sync management
 
 // GetBewit builds a value of bewit parameter.
