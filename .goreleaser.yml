@@ -1,0 +1,6 @@
+project_name: hawk
+build:
+  skip: true
+release:
+  github:
+  prerelease: auto
