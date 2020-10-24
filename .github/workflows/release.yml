@@ -1,3 +1,4 @@
+# This action triggers when new tags are pushed that look like semantic versioning (eg, v1.2.3)
 on:
   push:
     tags:
@@ -15,7 +16,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      # This action runs Goreleaser with the Github PAT scoped to the current repo and job
+      # This action runs Goreleaser with the GITHUB_TOKEN scoped to the current repo and job
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
