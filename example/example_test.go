@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func ExampleClient_Head() {
+func ExampleClient_Header() {
 	now := time.Date(2016, 5, 01, 9, 00, 00, 0, time.UTC)
 
 	c := &hawk.Client{

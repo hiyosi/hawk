@@ -1,0 +1,27 @@
+# This action triggers when new tags are pushed that look like semantic versioning (eg, v1.2.3)
+on:
+  push:
+    tags:
+      - 'v*'
+
+name: Release Creation Task
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      # This action runs Goreleaser with the GITHUB_TOKEN scoped to the current repo and job
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
