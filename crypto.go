@@ -130,7 +130,7 @@ func normalized(authType AuthType, uri, method, customHost string, option *Optio
 		}
 	}
 
-	path := u.Path
+	path := u.RawPath
 	if u.Query().Encode() != "" {
 		path = path + "?" + u.RawQuery
 	}
