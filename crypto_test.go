@@ -5,32 +5,48 @@ import (
 )
 
 func TestMac_String(t *testing.T) {
-	m := &Mac{
-		Type: Header,
-		Credential: &Credential{
-			ID:  "dh37fgj492je",
-			Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
-			Alg: SHA256,
+	for _, tc := range []struct {
+		name   string
+		uri    string
+		expect string
+	}{
+		{
+			name:   "non-encoded uri",
+			uri:    "http://example.com:8000/resource/1?b=1&a=2",
+			expect: "6R4rV5iE+NPoym+WwjeHzjAGXUtLNIxmo1vpMofpLAE=", // expected value is reference from https://github.com/hueniverse/hawk#protocol-example
 		},
-		Uri:    "http://example.com:8000/resource/1?b=1&a=2",
-		Method: "GET",
-		Option: &Option{
-			TimeStamp: int64(1353832234),
-			Nonce:     "j4h3g2",
-			Ext:       "some-app-ext-data",
+		{
+			name:   "encoded uri",
+			uri:    "http://example.com:8000/resource/x%2Fy%2Fz?b=1&a=2",
+			expect: "nurs0/PPVGhFt9v2gzBP4BCRQwzQJwPuIQKLYjoVIQ0=",
 		},
-	}
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m := &Mac{
+				Type: Header,
+				Credential: &Credential{
+					ID:  "dh37fgj492je",
+					Key: "werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn",
+					Alg: SHA256,
+				},
+				Uri:    tc.uri,
+				Method: "GET",
+				Option: &Option{
+					TimeStamp: int64(1353832234),
+					Nonce:     "j4h3g2",
+					Ext:       "some-app-ext-data",
+				},
+			}
 
-	act, err := m.String()
-	if err != nil {
-		t.Error("got an error", err.Error())
-	}
+			act, err := m.String()
+			if err != nil {
+				t.Error("got an error", err.Error())
+			}
 
-	// expected value is reference from https://github.com/hueniverse/hawk#protocol-example
-	expect := "6R4rV5iE+NPoym+WwjeHzjAGXUtLNIxmo1vpMofpLAE="
-
-	if act != expect {
-		t.Error("invalid mac.")
+			if act != tc.expect {
+				t.Errorf("invalid mac: actual=%v, expect=%v", act, tc.expect)
+			}
+		})
 	}
 }
 
